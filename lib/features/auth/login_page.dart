@@ -85,7 +85,13 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     child: MyButton(
                       onPressed: () {
-                        if (formKey.currentState!.validate()) {}
+                        if (formKey.currentState!.validate()) {
+                          AuthHelper.loginWithEmail(
+                            context,
+                            email: email.text.trim(),
+                            password: password.text.trim(),
+                          );
+                        }
                       },
                       child: Text("Login"),
                     ),

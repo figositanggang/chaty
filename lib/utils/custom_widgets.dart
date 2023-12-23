@@ -40,6 +40,7 @@ class MyButton extends StatelessWidget {
   }
 }
 
+// @ TextFormField
 class MyTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -141,6 +142,24 @@ Text MyText(
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,
+    ),
+  );
+}
+
+// @ MySnackBar
+SnackBar MySnackBar(String content) {
+  return SnackBar(
+    content: Text(content),
+    behavior: SnackBarBehavior.floating,
+    margin: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+  );
+}
+
+// @ Full Screen Loading
+Material FullScreenLoading() {
+  return Material(
+    child: Center(
+      child: CircularProgressIndicator(),
     ),
   );
 }

@@ -1,6 +1,5 @@
 import 'package:chaty/features/auth/auth_state_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
-import 'package:chaty/features/auth/login_page.dart';
 import 'package:flutter/material.dart';
 
 class WelcomePage extends StatelessWidget {

@@ -1,3 +1,4 @@
+import 'package:chaty/features/auth/auth_helper.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,8 @@ class DaftarPage extends StatefulWidget {
 
 class _DaftarPageState extends State<DaftarPage> {
   late TextEditingController email;
+  late TextEditingController username;
+  late TextEditingController fullName;
   late TextEditingController password;
   late GlobalKey<FormState> formKey;
 
@@ -21,6 +24,8 @@ class _DaftarPageState extends State<DaftarPage> {
     super.initState();
 
     email = TextEditingController();
+    username = TextEditingController();
+    fullName = TextEditingController();
     password = TextEditingController();
     formKey = GlobalKey<FormState>();
   }
@@ -37,7 +42,7 @@ class _DaftarPageState extends State<DaftarPage> {
               key: formKey,
               child: Column(
                 children: [
-                  MyText("Login", fontSize: 30),
+                  MyText("Daftar", fontSize: 30),
                   SizedBox(height: 40),
 
                   // @ Email Field
@@ -49,6 +54,29 @@ class _DaftarPageState extends State<DaftarPage> {
                     inputFormatters: [
                       FilteringTextInputFormatter.deny(RegExp(r"/^\S*$/"))
                     ],
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                  SizedBox(height: 10),
+
+                  // @ usename Field
+                  MyTextField(
+                    controller: username,
+                    hintText: "Username",
+                    autofillHints: [AutofillHints.newUsername],
+                    keyboardType: TextInputType.text,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r"\s\b|\b\s"))
+                    ],
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                  SizedBox(height: 10),
+
+                  // @ Full Name Field
+                  MyTextField(
+                    controller: fullName,
+                    hintText: "Nama Lengkap",
+                    autofillHints: [AutofillHints.name],
+                    keyboardType: TextInputType.name,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                   ),
                   SizedBox(height: 10),
@@ -78,27 +106,24 @@ class _DaftarPageState extends State<DaftarPage> {
                   ),
                   SizedBox(height: 10),
 
-                  // @ Login Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: MyButton(
-                      onPressed: () {
-                        if (formKey.currentState!.validate()) {}
-                      },
-                      child: Text("Login"),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-
                   // @ Daftar Button
                   SizedBox(
                     width: double.infinity,
                     child: MyButton(
-                      isPrimary: false,
-                      onPressed: () {},
+                      onPressed: () {
+                        if (formKey.currentState!.validate()) {
+                          AuthHelper.registerWithEmail(
+                            context,
+                            email: email.text.trim(),
+                            username: username.text.trim(),
+                            password: password.text.trim(),
+                          );
+                        }
+                      },
                       child: Text("Daftar"),
                     ),
                   ),
+                  SizedBox(height: 10),
                 ],
               ),
             ),
