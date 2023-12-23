@@ -1,17 +1,15 @@
-import 'package:chaty/features/auth/auth_helper.dart';
-import 'package:chaty/features/auth/daftar_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class DaftarPage extends StatefulWidget {
+  const DaftarPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<DaftarPage> createState() => _DaftarPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _DaftarPageState extends State<DaftarPage> {
   late TextEditingController email;
   late TextEditingController password;
   late GlobalKey<FormState> formKey;
@@ -97,27 +95,8 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     child: MyButton(
                       isPrimary: false,
-                      onPressed: () {
-                        Navigator.push(context, MyRoute(DaftarPage()));
-                      },
+                      onPressed: () {},
                       child: Text("Daftar"),
-                    ),
-                  ),
-                  SizedBox(height: 30),
-
-                  Text("Atau login dengan"),
-
-                  SizedBox(height: 20),
-
-                  // @ Login with...
-                  SizedBox(
-                    width: double.infinity,
-                    child: MyButton(
-                      onPressed: () {
-                        AuthHelper.loginWithGoogle(context);
-                      },
-                      child: Text("Google"),
-                      backgroundColor: Color.fromARGB(255, 246, 103, 74),
                     ),
                   ),
                 ],

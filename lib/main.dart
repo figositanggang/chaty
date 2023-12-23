@@ -1,5 +1,5 @@
 import 'package:chaty/firebase_options.dart';
-import 'package:chaty/customs/custom_theme.dart';
+import 'package:chaty/utils/custom_theme.dart';
 import 'package:chaty/welcome_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,7 @@ void main() async {
   runApp(const MyApp());
 }
 
-final supabase = Supabase.instance;
+final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

@@ -8,12 +8,14 @@ class MyButton extends StatelessWidget {
   final Function()? onPressed;
   final Widget child;
   bool isPrimary;
+  Color? backgroundColor;
 
   MyButton({
     super.key,
     required this.onPressed,
     required this.child,
     this.isPrimary = true,
+    this.backgroundColor,
   });
 
   @override
@@ -24,7 +26,7 @@ class MyButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(horizontal: 25, vertical: 20),
         backgroundColor: isPrimary
-            ? Theme.of(context).colorScheme.primary
+            ? backgroundColor ?? Theme.of(context).colorScheme.primary
             : Theme.of(context).buttonTheme.colorScheme!.background,
         foregroundColor: Colors.white,
         shape: !isPrimary
@@ -94,9 +96,19 @@ class MyTextField extends StatelessWidget {
       decoration: InputDecoration(
         contentPadding: EdgeInsets.all(20),
         hintText: hintText,
-        border: border,
+        border: border ??
+            OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
+              borderRadius: BorderRadius.circular(30),
+            ),
+        focusedBorder: OutlineInputBorder(
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2),
+          borderRadius: BorderRadius.circular(30),
+        ),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
+          borderRadius: BorderRadius.circular(30),
         ),
         suffixIcon: suffixIcon,
       ),

@@ -1,4 +1,5 @@
-import 'package:chaty/customs/custom_widgets.dart';
+import 'package:chaty/features/auth/auth_state_page.dart';
+import 'package:chaty/utils/custom_widgets.dart';
 import 'package:chaty/features/auth/login_page.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +30,7 @@ class WelcomePage extends StatelessWidget {
               width: MediaQuery.sizeOf(context).width / 1.5,
               child: MyButton(
                 onPressed: () {
-                  Navigator.push(context, MyRoute(LoginPage()));
+                  Navigator.push(context, MyRoute(AuthStatePage()));
                 },
                 child: Text("Mulai"),
               ),
