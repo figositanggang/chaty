@@ -116,6 +116,7 @@ class _DaftarPageState extends State<DaftarPage> {
                             context,
                             email: email.text.trim(),
                             username: username.text.trim(),
+                            full_name: fullName.text.trim(),
                             password: password.text.trim(),
                           );
                         }

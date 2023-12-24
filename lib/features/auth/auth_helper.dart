@@ -1,9 +1,11 @@
 import 'package:chaty/features/auth/auth_state_page.dart';
 import 'package:chaty/features/auth/login_page.dart';
-import 'package:chaty/features/chat/home_page.dart';
+import 'package:chaty/features/auth/models/user_model.dart';
+import 'package:chaty/features/chat/home/home_page.dart';
 import 'package:chaty/main.dart';
 import 'package:chaty/utils/custom_methods.dart';
 import 'package:chaty/utils/custom_widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +15,7 @@ class AuthHelper {
     clientId:
         "833031792575-n451mm7l2dndrs69mm61nluqj4ujfavj.apps.googleusercontent.com",
   );
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // ! Login With Email
   static Future<void> loginWithEmail(
@@ -54,11 +57,30 @@ class AuthHelper {
         throw "No Id Token";
       }
 
-      await supabase.auth.signInWithIdToken(
+      AuthResponse authResponse = await supabase.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: idToken,
         accessToken: accessToken,
       );
+
+      User user = authResponse.user!;
+
+      DateTime createdAt = DateTime.parse(user.createdAt);
+
+      DocumentSnapshot snapshot =
+          await _firestore.collection("users").doc(user.id).get();
+
+      if (!snapshot.exists) {
+        await _firestore.collection("users").doc(user.id).set(
+              UserModel(
+                userId: user.id,
+                username: "",
+                email: user.email!,
+                fullName: user.userMetadata!["full_name"] ?? "",
+                createdAt: Timestamp.fromDate(createdAt),
+              ).toJson(),
+            );
+      }
 
       Navigator.pushAndRemoveUntil(
           context, MyRoute(HomePage()), (route) => false);
@@ -73,6 +95,7 @@ class AuthHelper {
     BuildContext context, {
     required String email,
     required String username,
+    required String full_name,
     required String password,
   }) async {
     try {
@@ -81,8 +104,11 @@ class AuthHelper {
       await supabase.auth.signUp(
         email: email,
         password: password,
-        data: {"username": username},
+        data: {"username": username, "full_name": full_name},
       );
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(MySnackBar("Silahkan verifikasi email anda"));
 
       Navigator.pushAndRemoveUntil(
           context, MyRoute(LoginPage()), (route) => false);
