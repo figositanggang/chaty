@@ -109,23 +109,23 @@ class _LoginPageState extends State<LoginPage> {
                       child: Text("Daftar"),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  // SizedBox(height: 30),
 
-                  Text("Atau login dengan"),
+                  // Text("Atau login dengan"),
 
-                  SizedBox(height: 20),
+                  // SizedBox(height: 20),
 
                   // @ Login with...
-                  SizedBox(
-                    width: double.infinity,
-                    child: MyButton(
-                      onPressed: () {
-                        AuthHelper.loginWithGoogle(context);
-                      },
-                      child: Text("Google"),
-                      backgroundColor: Color.fromARGB(255, 246, 103, 74),
-                    ),
-                  ),
+                  // SizedBox(
+                  //   width: double.infinity,
+                  //   child: MyButton(
+                  //     onPressed: () {
+                  //       AuthHelper.loginWithGoogle(context);
+                  //     },
+                  //     child: Text("Google"),
+                  //     backgroundColor: Color.fromARGB(255, 246, 103, 74),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

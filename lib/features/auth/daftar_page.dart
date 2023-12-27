@@ -125,6 +125,19 @@ class _DaftarPageState extends State<DaftarPage> {
                     ),
                   ),
                   SizedBox(height: 10),
+
+                  // @ Batal Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: MyButton(
+                      isPrimary: false,
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text("Batal"),
+                    ),
+                  ),
+                  SizedBox(height: 10),
                 ],
               ),
             ),

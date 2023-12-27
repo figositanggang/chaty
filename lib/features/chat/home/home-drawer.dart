@@ -5,6 +5,13 @@ class HomeDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer();
+    return Drawer(
+      shape: RoundedRectangleBorder(),
+      child: Column(
+        children: [
+          DrawerHeader(child: Text("Halo")),
+        ],
+      ),
+    );
   }
 }

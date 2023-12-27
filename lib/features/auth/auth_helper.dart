@@ -13,9 +13,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class AuthHelper {
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId:
-        "833031792575-n451mm7l2dndrs69mm61nluqj4ujfavj.apps.googleusercontent.com",
+        "833031792575-0t5vel4vln9fk4o0g780hmo2f5jps5o8.apps.googleusercontent.com",
   );
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   // ! Login With Email
   static Future<void> loginWithEmail(
@@ -68,10 +68,10 @@ class AuthHelper {
       DateTime createdAt = DateTime.parse(user.createdAt);
 
       DocumentSnapshot snapshot =
-          await _firestore.collection("users").doc(user.id).get();
+          await firestore.collection("users").doc(user.id).get();
 
       if (!snapshot.exists) {
-        await _firestore.collection("users").doc(user.id).set(
+        await firestore.collection("users").doc(user.id).set(
               UserModel(
                 userId: user.id,
                 username: "",
@@ -86,7 +86,8 @@ class AuthHelper {
           context, MyRoute(HomePage()), (route) => false);
     } catch (e) {
       Navigator.pop(context);
-      throw e;
+      await _googleSignIn.signOut();
+      print("GAGAL LOGIN GOOGLE: ${e}");
     }
   }
 
@@ -101,14 +102,27 @@ class AuthHelper {
     try {
       showLoading(context);
 
-      await supabase.auth.signUp(
+      AuthResponse authResponse = await supabase.auth.signUp(
         email: email,
         password: password,
         data: {"username": username, "full_name": full_name},
       );
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(MySnackBar("Silahkan verifikasi email anda"));
+      User user = authResponse.user!;
+
+      DateTime createdAt = DateTime.parse(user.createdAt);
+
+      await firestore.collection("users").doc(user.id).set(
+            UserModel(
+              userId: user.id,
+              username: "",
+              email: user.email!,
+              fullName: user.userMetadata!["full_name"] ?? "",
+              createdAt: Timestamp.fromDate(createdAt),
+            ).toJson(),
+          );
+
+      ScaffoldMessenger.of(context).showSnackBar(MySnackBar("Silahkan login"));
 
       Navigator.pushAndRemoveUntil(
           context, MyRoute(LoginPage()), (route) => false);

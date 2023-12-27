@@ -11,8 +11,8 @@ class AuthStatePage extends StatelessWidget {
     return StreamBuilder(
       stream: supabase.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        if (snapshot.hasData && !snapshot.data!.session!.isExpired) {
-          return HomePage();
+        if (snapshot.hasData) {
+          if (snapshot.data!.session != null) return HomePage();
         }
 
         return LoginPage();

@@ -12,7 +12,9 @@
           "package_name": "com.example.chaty"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        "833031792575-0t5vel4vln9fk4o0g780hmo2f5jps5o8.apps.googleusercontent.com"
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCW1vXAYEgwZQ_vsQM-HesYCB8HWWIOQYY"
