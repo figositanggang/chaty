@@ -1,9 +1,16 @@
 import 'package:chaty/features/auth/auth_helper.dart';
-import 'package:chaty/features/auth/models/user_model.dart';
+import 'package:chaty/features/chat/chat_helper.dart';
+import 'package:chaty/features/chat/models/chat_model.dart';
+import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home-drawer.dart';
+import 'package:chaty/features/chat/tambah_chat_page.dart';
+import 'package:chaty/features/user/user_provider.dart';
+import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chaty/main.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,20 +23,30 @@ class _HomePageState extends State<HomePage> {
   final currentUser = supabase.auth.currentUser!;
 
   late Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUser;
+  late UserProvider userProvider;
+  late Stream<QuerySnapshot<Map<String, dynamic>>> getMyChats;
 
   @override
   void initState() {
     super.initState();
 
-    getCurrentUser =
-        AuthHelper.firestore.collection("users").doc(currentUser.id).get();
+    userProvider = Provider.of<UserProvider>(context, listen: false);
+    getCurrentUser = AuthHelper.firestore
+        .collection("users")
+        .doc(currentUser.id)
+        .get()
+        .then((value) {
+      userProvider.setCurrentUser = UserModel.fromSnapshot(value);
+      return value;
+    });
+    getMyChats = ChatHelper.getMyChats();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: kIsWeb ? true : false,
         title: FutureBuilder(
           future: getCurrentUser,
           builder: (context, snapshot) {
@@ -49,20 +66,52 @@ class _HomePageState extends State<HomePage> {
           SizedBox(width: 10),
         ],
       ),
-      body: ListView.builder(
-        itemCount: 15,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text("Admin"),
-            onTap: () {},
-            minVerticalPadding: 25,
+      body: StreamBuilder(
+        stream: getMyChats,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.data!.docs.isEmpty) {
+            return Center(
+              child: Text("Belum ada chats"),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text("Ada kesalahan"),
+            );
+          }
+
+          final docs = snapshot.data!.docs;
+          return ListView.builder(
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
+              return ChatCard(
+                chatModel: chatModel,
+                currentUserId: currentUser.id,
+              );
+            },
           );
         },
       ),
       drawer: HomeDrawer(),
       drawerEdgeDragWidth: MediaQuery.sizeOf(context).width - 100,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+              context,
+              MyRoute(
+                TambahChatPage(
+                  currentUser: userProvider.currentUser!,
+                ),
+              ));
+        },
         child: Icon(Icons.edit),
       ),
     );

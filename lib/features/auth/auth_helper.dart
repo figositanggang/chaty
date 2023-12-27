@@ -1,7 +1,8 @@
 import 'package:chaty/features/auth/auth_state_page.dart';
 import 'package:chaty/features/auth/login_page.dart';
-import 'package:chaty/features/auth/models/user_model.dart';
+import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home_page.dart';
+import 'package:chaty/features/user/user_provider.dart';
 import 'package:chaty/main.dart';
 import 'package:chaty/utils/custom_methods.dart';
 import 'package:chaty/utils/custom_widgets.dart';
@@ -115,9 +116,9 @@ class AuthHelper {
       await firestore.collection("users").doc(user.id).set(
             UserModel(
               userId: user.id,
-              username: "",
-              email: user.email!,
-              fullName: user.userMetadata!["full_name"] ?? "",
+              username: username,
+              email: email,
+              fullName: full_name,
               createdAt: Timestamp.fromDate(createdAt),
             ).toJson(),
           );
@@ -139,7 +140,7 @@ class AuthHelper {
       await _googleSignIn.signOut();
 
       Navigator.pushAndRemoveUntil(
-          context, MyRoute(LoginPage()), (route) => false);
+          context, MyRoute(AuthStatePage()), (route) => false);
     } catch (e) {}
   }
 }

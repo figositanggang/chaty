@@ -1,8 +1,11 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:chaty/features/auth/auth_helper.dart';
+import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+// Stateless Widgets
 // @ Button
 class MyButton extends StatelessWidget {
   final Function()? onPressed;
@@ -54,6 +57,7 @@ class MyTextField extends StatelessWidget {
   String? Function(String? value)? validator;
   InputBorder? border;
   Widget? suffixIcon;
+  int? maxLines;
 
   MyTextField({
     super.key,
@@ -69,13 +73,14 @@ class MyTextField extends StatelessWidget {
     this.validator,
     this.border,
     this.suffixIcon,
+    this.maxLines,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      maxLines: obscureText ? 1 : null,
+      maxLines: obscureText ? 1 : maxLines ?? null,
       onChanged: onChanged,
       autovalidateMode: autovalidateMode,
       keyboardType: keyboardType,
@@ -102,20 +107,44 @@ class MyTextField extends StatelessWidget {
               borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
               borderRadius: BorderRadius.circular(30),
             ),
-        focusedBorder: OutlineInputBorder(
-          borderSide:
-              BorderSide(color: Theme.of(context).primaryColor, width: 2),
-          borderRadius: BorderRadius.circular(30),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
-          borderRadius: BorderRadius.circular(30),
-        ),
+        focusedBorder: border ??
+            OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: Theme.of(context).primaryColor, width: 2),
+              borderRadius: BorderRadius.circular(30),
+            ),
+        enabledBorder: border ??
+            OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
+              borderRadius: BorderRadius.circular(30),
+            ),
         suffixIcon: suffixIcon,
       ),
     );
   }
 }
+
+// @ Chat Card
+class ChatCard extends StatelessWidget {
+  final String currentUserId;
+  final ChatModel chatModel;
+  const ChatCard({
+    super.key,
+    required this.chatModel,
+    required this.currentUserId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+          chatModel.users.where((element) => element != currentUserId).first),
+      minVerticalPadding: 25,
+    );
+  }
+}
+
+// Non Stateless Widgets
 
 // @ My Route
 PageRouteBuilder MyRoute(Widget page) {
