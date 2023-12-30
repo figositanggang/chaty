@@ -1,6 +1,5 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:chaty/features/auth/auth_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -48,7 +47,7 @@ class MyTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
   bool obscureText;
-  Function(String)? onChanged;
+  Function(String value)? onChanged;
   AutovalidateMode autovalidateMode;
   TextInputType keyboardType;
   TextInputAction textInputAction;
@@ -58,6 +57,7 @@ class MyTextField extends StatelessWidget {
   InputBorder? border;
   Widget? suffixIcon;
   int? maxLines;
+  bool autofocus;
 
   MyTextField({
     super.key,
@@ -74,11 +74,13 @@ class MyTextField extends StatelessWidget {
     this.border,
     this.suffixIcon,
     this.maxLines,
+    this.autofocus = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      autofocus: autofocus,
       controller: controller,
       maxLines: obscureText ? 1 : maxLines ?? null,
       onChanged: onChanged,

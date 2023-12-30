@@ -1,5 +1,5 @@
-import 'package:chaty/features/auth/auth_state_page.dart';
-import 'package:chaty/features/auth/login_page.dart';
+import 'package:chaty/features/auth/helpers/auth_state_page.dart';
+import 'package:chaty/features/auth/pages/login_page.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home_page.dart';
 import 'package:chaty/main.dart';
