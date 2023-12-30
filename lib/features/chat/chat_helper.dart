@@ -1,6 +1,5 @@
 import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
-import 'package:chaty/features/user/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatHelper {
@@ -16,16 +15,6 @@ class ChatHelper {
         .snapshots();
   }
 
-  // ! Get Current Chat Data
-  static Future<QuerySnapshot<Map<String, dynamic>>> getChatData(
-    String currentUserId,
-    String otherUserId,
-  ) {
-    return firestore
-        .collection("chats")
-        .where("users", arrayContainsAny: [currentUserId, otherUserId]).get();
-  }
-
   // ! Get Messages
   // Retreive current messages
   static Stream<QuerySnapshot<Map<String, dynamic>>> getMessages(
@@ -35,6 +24,7 @@ class ChatHelper {
         .collection("chats")
         .doc(chatId)
         .collection("messages")
+        .orderBy("createdAt", descending: false)
         .snapshots();
   }
 
@@ -94,6 +84,12 @@ class ChatHelper {
               createdAt: Timestamp.now(),
             ).toMap(),
           );
+
+      // ! Update Last Message
+      await firestore
+          .collection("chats")
+          .doc(chatId)
+          .update({"lastMessage": messageText});
     } catch (e) {}
   }
 }

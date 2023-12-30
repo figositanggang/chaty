@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserHelper {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // ! Get All Users
   static Future<List<UserModel>> getAllUsers() async {
     List<UserModel> users = [];
 
@@ -16,5 +17,11 @@ class UserHelper {
     } catch (e) {}
 
     return users;
+  }
+
+  // ! Get Other User Data
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> getUserData(
+      String userId) {
+    return _firestore.collection("users").doc(userId).snapshots();
   }
 }

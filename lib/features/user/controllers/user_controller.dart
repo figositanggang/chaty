@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 
 class UserController extends GetxController {
-  Rx<UserModel> _userModel = UserModel(
+  Rx<UserModel> _currentUser = UserModel(
     userId: "",
     username: "",
     email: "",
@@ -11,9 +11,9 @@ class UserController extends GetxController {
     createdAt: Timestamp.now(),
   ).obs;
 
-  UserModel get userModel => _userModel.value;
+  UserModel get currentUser => _currentUser.value;
 
   void setUserModel(UserModel value) {
-    _userModel.value = value;
+    _currentUser.value = value;
   }
 }

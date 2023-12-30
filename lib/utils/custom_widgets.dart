@@ -2,6 +2,9 @@
 
 import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
+import 'package:chaty/features/chat/pages/chatting_page.dart';
+import 'package:chaty/features/user/helpers/user_helper.dart';
+import 'package:chaty/features/user/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -130,21 +133,37 @@ class MyTextField extends StatelessWidget {
 
 // @ Chat Card
 class ChatCard extends StatelessWidget {
-  final String currentUserId;
+  final UserModel currentUserModel;
   final ChatModel chatModel;
   const ChatCard({
     super.key,
     required this.chatModel,
-    required this.currentUserId,
+    required this.currentUserModel,
   });
 
   @override
   Widget build(BuildContext context) {
-    var aw = chatModel.users.where((element) => element != currentUserId);
+    String otherUserId = chatModel.users
+        .where((element) => element != currentUserModel.userId)
+        .first;
 
-    return ListTile(
-      title: Text("AW"),
-      minVerticalPadding: 25,
+    return StreamBuilder(
+      stream: UserHelper.getUserData(otherUserId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return ListTile(
+            title: Text(""),
+            minVerticalPadding: 25,
+          );
+        }
+
+        final otherUserModel = UserModel.fromSnapshot(snapshot.data!);
+        return UserCard(
+          otherUserModel: otherUserModel,
+          currentUserModel: currentUserModel,
+          chatModel: chatModel,
+        );
+      },
     );
   }
 }
@@ -156,13 +175,66 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(messageModel);
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor,
       ),
-      child: Text(messageModel.messageText),
+      child: Text(
+        messageModel.messageText,
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
+}
+
+// @ User Card
+class UserCard extends StatelessWidget {
+  final UserModel currentUserModel;
+  final UserModel otherUserModel;
+  final ChatModel chatModel;
+
+  const UserCard({
+    super.key,
+    required this.otherUserModel,
+    required this.currentUserModel,
+    required this.chatModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: () {
+        Navigator.push(
+          context,
+          MyRoute(ChattingPage(
+            chatModel: chatModel,
+            currentUserModel: currentUserModel,
+            otherUserModel: otherUserModel,
+          )),
+        );
+      },
+      leading: Container(
+        height: 50,
+        width: 50,
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor,
+          borderRadius: BorderRadius.circular(10),
+          image: DecorationImage(
+            image: NetworkImage(otherUserModel.photoUrl),
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.low,
+          ),
+        ),
+      ),
+      title: Text(otherUserModel.fullName),
+      subtitle: MyText(
+        chatModel.lastMessage,
+        color: Colors.white.withOpacity(.5),
+      ),
     );
   }
 }

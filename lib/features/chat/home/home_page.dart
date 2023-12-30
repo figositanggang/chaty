@@ -63,8 +63,8 @@ class _HomePageState extends State<HomePage> {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: kIsWeb ? true : false,
-            title:
-                Text("Halo ${userController.userModel.fullName.split(" ")[0]}"),
+            title: Text(
+                "Halo ${userController.currentUser.fullName.split(" ")[0]}"),
             actions: [
               IconButton(
                 onPressed: () {},
@@ -103,7 +103,8 @@ class _HomePageState extends State<HomePage> {
 
                   return ChatCard(
                     chatModel: chatModel,
-                    currentUserId: currentUser.id,
+                    currentUserModel: userController.currentUser,
+                    // currentUser: userController.currentUser,
                   );
                 },
               );
@@ -117,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MyRoute(
                   TambahChatPage(
-                    currentUser: userController.userModel,
+                    currentUser: userController.currentUser,
                   ),
                 ),
               );
