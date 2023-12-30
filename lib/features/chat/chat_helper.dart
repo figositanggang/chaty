@@ -42,6 +42,7 @@ class ChatHelper {
             ChatModel(
               chatId: "",
               users: [currentUserId, otherUserId],
+              lastPosition: 0.0,
               lastMessage: messageText,
               createdAt: Timestamp.now(),
             ).toJson(),

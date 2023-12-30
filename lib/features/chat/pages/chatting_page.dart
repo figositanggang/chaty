@@ -105,28 +105,37 @@ class _ChattingPageState extends State<ChattingPage> {
                       // ! Scroll to Bottom
                       if (docs.isNotEmpty) {
                         chatController.setScrollController(ScrollController(
-                            initialScrollOffset: docs.last["position"]));
+                            initialScrollOffset:
+                                chatModel!.lastPosition.toDouble()));
                       }
-                      return ListView.builder(
-                        controller: chatController.scrollController,
-                        itemCount: docs.length,
-                        itemBuilder: (context, index) {
-                          MessageModel messageModel =
-                              MessageModel.fromSnapshot(docs[index]);
+                      return NotificationListener<ScrollEndNotification>(
+                        onNotification: (notification) {
+                          updateLasPosition(
+                              chatModel!.chatId, notification.metrics.pixels);
 
-                          // @ Chat Bubble
-                          return Align(
-                            alignment:
-                                messageModel.senderId == currentUserModel.userId
-                                    ? Alignment.centerRight
-                                    : Alignment.centerLeft,
-                            child: ChatBubble(
-                              isMine: messageModel.senderId ==
-                                  currentUserModel.userId,
-                              messageModel: messageModel,
-                            ),
-                          );
+                          return false;
                         },
+                        child: ListView.builder(
+                          controller: chatController.scrollController,
+                          itemCount: docs.length,
+                          itemBuilder: (context, index) {
+                            MessageModel messageModel =
+                                MessageModel.fromSnapshot(docs[index]);
+
+                            // @ Chat Bubble
+                            return Align(
+                              alignment: messageModel.senderId ==
+                                      currentUserModel.userId
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: MessageBubble(
+                                isMine: messageModel.senderId ==
+                                    currentUserModel.userId,
+                                messageModel: messageModel,
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   )
@@ -226,5 +235,14 @@ class _ChattingPageState extends State<ChattingPage> {
     } catch (e) {
       print("GAGAL: $e");
     }
+  }
+
+  // ! Update last scroll position
+  void updateLasPosition(String chatId, num position) async {
+    try {
+      await ChatHelper.firestore.collection("chats").doc(chatId).update({
+        "lastPosition": position,
+      });
+    } catch (e) {}
   }
 }

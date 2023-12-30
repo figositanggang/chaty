@@ -168,14 +168,14 @@ class ChatCard extends StatelessWidget {
   }
 }
 
-// @ Chat Bubble
-class ChatBubble extends StatelessWidget {
+// @ Message Bubble
+class MessageBubble extends StatelessWidget {
   final MessageModel messageModel;
 
   // ! is this my chat or not
   final bool isMine;
 
-  const ChatBubble({
+  const MessageBubble({
     super.key,
     required this.messageModel,
     required this.isMine,
@@ -198,7 +198,7 @@ class ChatBubble extends StatelessWidget {
         ),
         child: Text(
           messageModel.messageText,
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white, height: 1.5),
         ),
       ),
     );
