@@ -8,6 +8,7 @@ class UserController extends GetxController {
     username: "",
     email: "",
     fullName: "",
+    chats: [],
     createdAt: Timestamp.now(),
   ).obs;
 

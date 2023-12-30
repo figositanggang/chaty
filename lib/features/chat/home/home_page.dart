@@ -1,10 +1,10 @@
 import 'package:chaty/features/auth/helpers/auth_helper.dart';
 import 'package:chaty/features/chat/chat_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
-import 'package:chaty/features/user/controllers/user_controller.dart';
+import 'package:chaty/features/user/user_controller.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home-drawer.dart';
-import 'package:chaty/features/chat/pages/tambah_chat_page.dart';
+import 'package:chaty/features/chat/pages/new_chat_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';

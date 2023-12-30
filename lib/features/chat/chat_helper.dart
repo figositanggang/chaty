@@ -34,6 +34,7 @@ class ChatHelper {
     required String currentUserId,
     required String otherUserId,
     required String messageText,
+    required double position,
   }) async {
     try {
       // ! Create New Chat
@@ -49,6 +50,9 @@ class ChatHelper {
           .collection("chats")
           .doc(chatReference.id)
           .update({"chatId": chatReference.id});
+      await firestore.collection("users").doc(currentUserId).update({
+        "chats": [chatReference.id]
+      });
 
       // ! Send New Message
       await firestore
@@ -60,6 +64,7 @@ class ChatHelper {
               senderId: currentUserId,
               messageText: messageText,
               createdAt: Timestamp.now(),
+              position: position,
             ).toMap(),
           );
     } catch (e) {}
@@ -70,6 +75,7 @@ class ChatHelper {
     required String chatId,
     required String currentUserId,
     required String messageText,
+    required double position,
   }) async {
     try {
       // ! Send New Message
@@ -82,8 +88,13 @@ class ChatHelper {
               senderId: currentUserId,
               messageText: messageText,
               createdAt: Timestamp.now(),
+              position: position,
             ).toMap(),
           );
+
+      await firestore.collection("users").doc(currentUserId).update({
+        "chats": [chatId]
+      });
 
       // ! Update Last Message
       await firestore

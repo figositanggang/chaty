@@ -171,21 +171,35 @@ class ChatCard extends StatelessWidget {
 // @ Chat Bubble
 class ChatBubble extends StatelessWidget {
   final MessageModel messageModel;
-  const ChatBubble({super.key, required this.messageModel});
+
+  // ! is this my chat or not
+  final bool isMine;
+
+  const ChatBubble({
+    super.key,
+    required this.messageModel,
+    required this.isMine,
+  });
 
   @override
   Widget build(BuildContext context) {
-    print(messageModel);
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-      decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor,
-      ),
-      child: Text(
-        messageModel.messageText,
-        style: TextStyle(color: Colors.white),
+    return DefaultTextStyle(
+      style: TextStyle(fontSize: 18),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: isMine
+              ? Theme.of(context).primaryColor.withOpacity(.75)
+              : Theme.of(context).primaryColor.withOpacity(.15),
+        ),
+        child: Text(
+          messageModel.messageText,
+          style: TextStyle(color: Colors.white),
+        ),
       ),
     );
   }
@@ -207,8 +221,8 @@ class UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MyRoute(ChattingPage(
             chatModel: chatModel,
@@ -234,6 +248,7 @@ class UserCard extends StatelessWidget {
       subtitle: MyText(
         chatModel.lastMessage,
         color: Colors.white.withOpacity(.5),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -260,9 +275,11 @@ Text MyText(
   FontWeight? fontWeight,
   double? letterSpacing,
   Color? color,
+  TextOverflow? overflow,
 }) {
   return Text(
     text,
+    overflow: overflow,
     style: TextStyle(
       color: color,
       fontSize: fontSize,

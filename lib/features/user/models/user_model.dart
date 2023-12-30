@@ -5,17 +5,22 @@ class UserModel {
   final String username;
   final String email;
   final String fullName;
-  String photoUrl;
+
   final Timestamp createdAt;
+
+  final List chats;
+
+  String photoUrl;
 
   UserModel({
     required this.userId,
     required this.username,
     required this.email,
     required this.fullName,
+    required this.chats,
+    required this.createdAt,
     this.photoUrl =
         "https://res.cloudinary.com/unlinked/image/upload/v1703853324/cute-angry-red-dinosaur-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-flat_138676-6013_nxzvjz.jpg",
-    required this.createdAt,
   });
 
   Map<String, dynamic> toJson() => {
@@ -23,8 +28,9 @@ class UserModel {
         "username": this.username,
         "email": this.email,
         "fullName": this.fullName,
-        "photoUrl": this.photoUrl,
         "createdAt": this.createdAt,
+        "chats": this.chats,
+        "photoUrl": this.photoUrl,
       };
 
   factory UserModel.fromSnapshot(DocumentSnapshot snapshot) {
@@ -36,6 +42,8 @@ class UserModel {
       email: snap['email'],
       fullName: snap['fullName'],
       createdAt: snap['createdAt'],
+      chats: snap['chats'],
+      photoUrl: snap['photoUrl'],
     );
   }
 }

@@ -121,9 +121,9 @@ class _TambahChatPageState extends State<TambahChatPage> {
 
     List<UserModel> temp = [];
 
-    for (var element in users) {
-      if (element.username.contains(text)) {
-        temp.add(element);
+    for (var user in users) {
+      if (user.username.contains(text) && user.chats.isEmpty) {
+        temp.add(user);
       }
     }
 

@@ -4,17 +4,20 @@ class MessageModel {
   final String senderId;
   final String messageText;
   final Timestamp createdAt;
+  final double position;
 
   MessageModel({
     required this.senderId,
     required this.messageText,
     required this.createdAt,
+    required this.position,
   });
 
   Map<String, dynamic> toMap() => {
         "senderId": this.senderId,
         "messageText": this.messageText,
         "createdAt": this.createdAt,
+        "position": this.position,
       };
 
   factory MessageModel.fromSnapshot(DocumentSnapshot snapshot) {
@@ -24,6 +27,7 @@ class MessageModel {
       senderId: snap["senderId"],
       messageText: snap["messageText"],
       createdAt: snap["createdAt"],
+      position: snap["position"],
     );
   }
 }

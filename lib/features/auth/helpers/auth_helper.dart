@@ -1,4 +1,4 @@
-import 'package:chaty/features/auth/helpers/auth_state_page.dart';
+import 'package:chaty/features/auth/pages/auth_state_page.dart';
 import 'package:chaty/features/auth/pages/login_page.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home_page.dart';
@@ -77,6 +77,7 @@ class AuthHelper {
                 username: "",
                 email: user.email!,
                 fullName: user.userMetadata!["full_name"] ?? "",
+                chats: [],
                 createdAt: Timestamp.fromDate(createdAt),
               ).toJson(),
             );
@@ -118,6 +119,7 @@ class AuthHelper {
               username: username,
               email: email,
               fullName: full_name,
+              chats: [],
               createdAt: Timestamp.fromDate(createdAt),
             ).toJson(),
           );

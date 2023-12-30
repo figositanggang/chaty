@@ -1,12 +1,15 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:chaty/features/chat/chat_controller.dart';
 import 'package:chaty/features/chat/chat_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/utils/custom_widgets.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_core/get_core.dart';
+import 'package:get/get_instance/get_instance.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 
 class ChattingPage extends StatefulWidget {
   ChatModel? chatModel;
@@ -29,16 +32,15 @@ class _ChattingPageState extends State<ChattingPage> {
   late UserModel otherUserModel;
   ChatModel? chatModel;
 
-  late TextEditingController messageController;
+  final ChatController chatController = Get.put(ChatController());
 
   @override
   void initState() {
     super.initState();
+
     currentUserModel = widget.currentUserModel;
     otherUserModel = widget.otherUserModel;
     chatModel = widget.chatModel;
-
-    messageController = TextEditingController();
   }
 
   @override
@@ -47,31 +49,36 @@ class _ChattingPageState extends State<ChattingPage> {
       // @ App Bar
       appBar: AppBar(
         titleSpacing: 0,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // @ User Avatar
-            Container(
-              height: 25,
-              width: 25,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(10),
-                image: DecorationImage(
-                  image: NetworkImage(otherUserModel.photoUrl),
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.low,
+
+        // @ User Avatar & Name
+        title: GestureDetector(
+          onTap: () {},
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // @ User Avatar
+              Container(
+                height: 25,
+                width: 25,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                  image: DecorationImage(
+                    image: NetworkImage(otherUserModel.photoUrl),
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.low,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(width: 10),
+              SizedBox(width: 10),
 
-            // @ User Name
-            Text(
-              widget.otherUserModel.fullName,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              // @ User Name
+              Text(
+                widget.otherUserModel.fullName,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
       body: Column(
@@ -95,18 +102,29 @@ class _ChattingPageState extends State<ChattingPage> {
                       }
 
                       final docs = snapshot.data!.docs;
+                      // ! Scroll to Bottom
+                      if (docs.isNotEmpty) {
+                        chatController.setScrollController(ScrollController(
+                            initialScrollOffset: docs.last["position"]));
+                      }
                       return ListView.builder(
+                        controller: chatController.scrollController,
                         itemCount: docs.length,
                         itemBuilder: (context, index) {
                           MessageModel messageModel =
                               MessageModel.fromSnapshot(docs[index]);
 
+                          // @ Chat Bubble
                           return Align(
                             alignment:
                                 messageModel.senderId == currentUserModel.userId
                                     ? Alignment.centerRight
                                     : Alignment.centerLeft,
-                            child: ChatBubble(messageModel: messageModel),
+                            child: ChatBubble(
+                              isMine: messageModel.senderId ==
+                                  currentUserModel.userId,
+                              messageModel: messageModel,
+                            ),
                           );
                         },
                       );
@@ -133,42 +151,57 @@ class _ChattingPageState extends State<ChattingPage> {
               child: Row(
                 children: [
                   // @ Text Field
-                  Expanded(
-                    child: MyTextField(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color:
-                                Theme.of(context).primaryColor.withOpacity(.5)),
+                  Obx(
+                    () => Expanded(
+                      child: MyTextField(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                              color: Theme.of(context)
+                                  .primaryColor
+                                  .withOpacity(.5)),
+                        ),
+                        autovalidateMode: AutovalidateMode.disabled,
+                        controller: chatController.messageController,
+                        hintText: "Masukkan pesan..",
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        maxLines: null,
                       ),
-                      controller: messageController,
-                      hintText: "Masukkan pesan..",
-                      keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
-                      maxLines: null,
                     ),
                   ),
 
                   // @ Send Message Button
                   IconButton(
-                    onPressed: () {
+                    onPressed: () async {
                       // ! Create New Chat
                       if (chatModel == null) {
-                        ChatHelper.createNewChat(
+                        await ChatHelper.createNewChat(
                           otherUserId: otherUserModel.userId,
                           currentUserId: currentUserModel.userId,
-                          messageText: messageController.text.trim(),
+                          messageText:
+                              chatController.messageController.text.trim(),
+                          position: chatController
+                              .scrollController.position.maxScrollExtent,
                         );
                       }
 
                       // ! Send Message
                       else {
-                        ChatHelper.sendMessage(
+                        await ChatHelper.sendMessage(
                           chatId: chatModel!.chatId,
                           currentUserId: currentUserModel.userId,
-                          messageText: messageController.text.trim(),
+                          messageText:
+                              chatController.messageController.text.trim(),
+                          position: chatController
+                              .scrollController.position.maxScrollExtent,
                         );
                       }
+
+                      scrollToBottom(chatController.scrollController);
+
+                      chatController.setMessageController(
+                          TextEditingController(text: ""));
                     },
                     padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                     icon: Icon(Icons.send),
@@ -181,5 +214,17 @@ class _ChattingPageState extends State<ChattingPage> {
         ],
       ),
     );
+  }
+
+  void scrollToBottom(ScrollController scrollController) async {
+    try {
+      await scrollController.animateTo(
+        scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+      );
+    } catch (e) {
+      print("GAGAL: $e");
+    }
   }
 }
