@@ -1,10 +1,9 @@
-import 'package:chaty/features/user/user_provider.dart';
 import 'package:chaty/firebase_options.dart';
 import 'package:chaty/utils/custom_theme.dart';
 import 'package:chaty/welcome_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -18,12 +17,7 @@ void main() async {
     url: "https://knpfsmkwiucjuehpfepa.supabase.co",
   );
 
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => UserProvider()),
-    ],
-    child: const MyApp(),
-  ));
+  runApp(const MyApp());
 }
 
 final supabase = Supabase.instance.client;
@@ -33,7 +27,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter Demo',
       theme: darkTheme,
       debugShowCheckedModeBanner: false,

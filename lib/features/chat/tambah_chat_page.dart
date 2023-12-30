@@ -27,7 +27,7 @@ class _TambahChatPageState extends State<TambahChatPage> {
       appBar: AppBar(
         title: MyTextField(
           controller: username,
-          hintText: "Masukkan username",
+          hintText: "cari username...",
           maxLines: 1,
           border:
               UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),

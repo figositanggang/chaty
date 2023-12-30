@@ -2,7 +2,6 @@ import 'package:chaty/features/auth/auth_state_page.dart';
 import 'package:chaty/features/auth/login_page.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home_page.dart';
-import 'package:chaty/features/user/user_provider.dart';
 import 'package:chaty/main.dart';
 import 'package:chaty/utils/custom_methods.dart';
 import 'package:chaty/utils/custom_widgets.dart';

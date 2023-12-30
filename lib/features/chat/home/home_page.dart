@@ -1,16 +1,17 @@
 import 'package:chaty/features/auth/auth_helper.dart';
 import 'package:chaty/features/chat/chat_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
+import 'package:chaty/features/user/controllers/user_controller.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home-drawer.dart';
 import 'package:chaty/features/chat/tambah_chat_page.dart';
-import 'package:chaty/features/user/user_provider.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chaty/main.dart';
-import 'package:provider/provider.dart';
+import 'package:get/get_core/get_core.dart';
+import 'package:get/get_instance/get_instance.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,22 +22,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final currentUser = supabase.auth.currentUser!;
+  final UserController userController = Get.put(UserController());
 
   late Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUser;
-  late UserProvider userProvider;
   late Stream<QuerySnapshot<Map<String, dynamic>>> getMyChats;
 
   @override
   void initState() {
     super.initState();
 
-    userProvider = Provider.of<UserProvider>(context, listen: false);
     getCurrentUser = AuthHelper.firestore
         .collection("users")
         .doc(currentUser.id)
         .get()
         .then((value) {
-      userProvider.setCurrentUser = UserModel.fromSnapshot(value);
+      userController.setUserModel(UserModel.fromSnapshot(value));
       return value;
     });
     getMyChats = ChatHelper.getMyChats();
@@ -105,12 +105,13 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
-              context,
-              MyRoute(
-                TambahChatPage(
-                  currentUser: userProvider.currentUser!,
-                ),
-              ));
+            context,
+            MyRoute(
+              TambahChatPage(
+                currentUser: userController.userModel,
+              ),
+            ),
+          );
         },
         child: Icon(Icons.edit),
       ),
