@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           body: StreamBuilder(
-            stream: ChatHelper.getMyChats(currentUser.id),
+            stream: ChatHelper.streamMyChats(currentUser.id),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -104,7 +104,6 @@ class _HomePageState extends State<HomePage> {
                   return ChatCard(
                     chatModel: chatModel,
                     currentUserModel: userController.currentUser,
-                    // currentUser: userController.currentUser,
                   );
                 },
               );

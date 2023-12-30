@@ -6,6 +6,7 @@ import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/utils/custom_widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_instance/get_instance.dart';
@@ -139,7 +140,7 @@ class _ChattingPageState extends State<ChattingPage> {
                       );
                     },
                   )
-                : Text("Belum ada pesan"),
+                : Center(child: Text("Belum ada pesan")),
           ),
 
           // @ Message Field
@@ -183,16 +184,30 @@ class _ChattingPageState extends State<ChattingPage> {
                   // @ Send Message Button
                   IconButton(
                     onPressed: () async {
+                      String messageText =
+                          chatController.messageController.text.trim();
+                      chatController.setMessageController(
+                          TextEditingController(text: ""));
+
                       // ! Create New Chat
                       if (chatModel == null) {
-                        await ChatHelper.createNewChat(
+                        ChatModel? _chatModel = await ChatHelper.createNewChat(
                           otherUserId: otherUserModel.userId,
                           currentUserId: currentUserModel.userId,
-                          messageText:
-                              chatController.messageController.text.trim(),
-                          position: chatController
-                              .scrollController.position.maxScrollExtent,
+                          messageModel: MessageModel(
+                            senderId: currentUserModel.userId,
+                            messageText: messageText,
+                            createdAt: Timestamp.now(),
+                            position: chatController.scrollController.hasClients
+                                ? chatController
+                                    .scrollController.position.maxScrollExtent
+                                : 0.0,
+                          ),
                         );
+
+                        setState(() {
+                          chatModel = _chatModel;
+                        });
                       }
 
                       // ! Send Message
@@ -200,10 +215,11 @@ class _ChattingPageState extends State<ChattingPage> {
                         await ChatHelper.sendMessage(
                           chatId: chatModel!.chatId,
                           currentUserId: currentUserModel.userId,
-                          messageText:
-                              chatController.messageController.text.trim(),
-                          position: chatController
-                              .scrollController.position.maxScrollExtent,
+                          messageText: messageText,
+                          position: chatController.scrollController.hasClients
+                              ? chatController
+                                  .scrollController.position.maxScrollExtent
+                              : 0.0,
                         );
                       }
 

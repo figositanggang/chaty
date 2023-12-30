@@ -30,4 +30,13 @@ class MessageModel {
       position: snap["position"],
     );
   }
+
+  factory MessageModel.fromMap(Map<String, dynamic> snap) {
+    return MessageModel(
+      senderId: snap["senderId"],
+      messageText: snap["messageText"],
+      createdAt: snap["createdAt"],
+      position: snap["position"],
+    );
+  }
 }

@@ -7,12 +7,17 @@ class ChatHelper {
 
   // ! Get My Chats
   // Retrieve history chat
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyChats(
+  static Stream<QuerySnapshot<Map<String, dynamic>>> streamMyChats(
       String currentUserId) {
     return firestore
         .collection("chats")
         .where("users", arrayContains: currentUserId)
         .snapshots();
+  }
+
+  // ! Get Current Chat
+  static Future<DocumentSnapshot<Map<String, dynamic>>> getChat(String chatId) {
+    return firestore.collection("chats").doc(chatId).get();
   }
 
   // ! Get Messages
@@ -30,12 +35,12 @@ class ChatHelper {
 
   // ! Create New Chat
   // memulai chat baru
-  static Future createNewChat({
+  static Future<ChatModel?> createNewChat({
     required String currentUserId,
     required String otherUserId,
-    required String messageText,
-    required double position,
+    required MessageModel messageModel,
   }) async {
+    ChatModel? chatModel;
     try {
       // ! Create New Chat
       DocumentReference chatReference = await firestore.collection("chats").add(
@@ -43,7 +48,7 @@ class ChatHelper {
               chatId: "",
               users: [currentUserId, otherUserId],
               lastPosition: 0.0,
-              lastMessage: messageText,
+              lastMessage: messageModel.toMap(),
               createdAt: Timestamp.now(),
             ).toJson(),
           );
@@ -63,12 +68,17 @@ class ChatHelper {
           .add(
             MessageModel(
               senderId: currentUserId,
-              messageText: messageText,
+              messageText: messageModel.messageText,
               createdAt: Timestamp.now(),
-              position: position,
+              position: messageModel.position,
             ).toMap(),
           );
+
+      chatModel = ChatModel.fromSnapshot(
+          await firestore.collection("chats").doc(chatReference.id).get());
     } catch (e) {}
+
+    return chatModel;
   }
 
   // ! Send Message
@@ -79,7 +89,7 @@ class ChatHelper {
     required double position,
   }) async {
     try {
-      // ! Send New Message
+      // ! Send Message
       await firestore
           .collection("chats")
           .doc(chatId)
@@ -93,15 +103,15 @@ class ChatHelper {
             ).toMap(),
           );
 
-      await firestore.collection("users").doc(currentUserId).update({
-        "chats": [chatId]
-      });
-
       // ! Update Last Message
-      await firestore
-          .collection("chats")
-          .doc(chatId)
-          .update({"lastMessage": messageText});
+      await firestore.collection("chats").doc(chatId).update({
+        "lastMessage": MessageModel(
+          senderId: currentUserId,
+          messageText: messageText,
+          createdAt: Timestamp.now(),
+          position: position,
+        ).toMap(),
+      });
     } catch (e) {}
   }
 }

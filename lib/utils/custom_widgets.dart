@@ -136,6 +136,7 @@ class MyTextField extends StatelessWidget {
 class ChatCard extends StatelessWidget {
   final UserModel currentUserModel;
   final ChatModel chatModel;
+
   const ChatCard({
     super.key,
     required this.chatModel,
@@ -159,12 +160,66 @@ class ChatCard extends StatelessWidget {
         }
 
         final otherUserModel = UserModel.fromSnapshot(snapshot.data!);
-        return UserCard(
+        return OtherUserCard(
           otherUserModel: otherUserModel,
           currentUserModel: currentUserModel,
           chatModel: chatModel,
         );
       },
+    );
+  }
+}
+
+// @ Other User Card
+class OtherUserCard extends StatelessWidget {
+  final UserModel currentUserModel;
+  final UserModel otherUserModel;
+  final ChatModel chatModel;
+
+  const OtherUserCard({
+    super.key,
+    required this.otherUserModel,
+    required this.currentUserModel,
+    required this.chatModel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final lastMessage = MessageModel.fromMap(chatModel.lastMessage);
+
+    return ListTile(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MyRoute(ChattingPage(
+            chatModel: chatModel,
+            currentUserModel: currentUserModel,
+            otherUserModel: otherUserModel,
+          )),
+        );
+      },
+      leading: Container(
+        height: 50,
+        width: 50,
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor,
+          borderRadius: BorderRadius.circular(10),
+          image: DecorationImage(
+            image: NetworkImage(otherUserModel.photoUrl),
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.low,
+          ),
+        ),
+      ),
+      title: Text(
+        otherUserModel.fullName,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: MyText(
+        lastMessage.messageText,
+        color: Colors.white.withOpacity(.5),
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 }
@@ -207,55 +262,6 @@ class MessageBubble extends StatelessWidget {
             style: TextStyle(color: Colors.white, height: 1.5),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// @ User Card
-class UserCard extends StatelessWidget {
-  final UserModel currentUserModel;
-  final UserModel otherUserModel;
-  final ChatModel chatModel;
-
-  const UserCard({
-    super.key,
-    required this.otherUserModel,
-    required this.currentUserModel,
-    required this.chatModel,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MyRoute(ChattingPage(
-            chatModel: chatModel,
-            currentUserModel: currentUserModel,
-            otherUserModel: otherUserModel,
-          )),
-        );
-      },
-      leading: Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(10),
-          image: DecorationImage(
-            image: NetworkImage(otherUserModel.photoUrl),
-            fit: BoxFit.cover,
-            filterQuality: FilterQuality.low,
-          ),
-        ),
-      ),
-      title: Text(otherUserModel.fullName),
-      subtitle: MyText(
-        chatModel.lastMessage,
-        color: Colors.white.withOpacity(.5),
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
