@@ -7,3 +7,7 @@ void showLoading(BuildContext context) {
     builder: (context) => FullScreenLoading(),
   );
 }
+
+void showSnackBar(BuildContext context, String content) {
+  ScaffoldMessenger.of(context).showSnackBar(MySnackBar(content));
+}

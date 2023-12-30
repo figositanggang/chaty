@@ -122,7 +122,7 @@ class _ChattingPageState extends State<ChattingPage> {
                             MessageModel messageModel =
                                 MessageModel.fromSnapshot(docs[index]);
 
-                            // @ Chat Bubble
+                            // @ Message Bubble
                             return Align(
                               alignment: messageModel.senderId ==
                                       currentUserModel.userId

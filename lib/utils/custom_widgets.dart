@@ -5,6 +5,7 @@ import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:chaty/features/chat/pages/chatting_page.dart';
 import 'package:chaty/features/user/helpers/user_helper.dart';
 import 'package:chaty/features/user/models/user_model.dart';
+import 'package:chaty/utils/custom_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -183,22 +184,28 @@ class MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTextStyle(
-      style: TextStyle(fontSize: 18),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          color: isMine
-              ? Theme.of(context).primaryColor.withOpacity(.75)
-              : Theme.of(context).primaryColor.withOpacity(.15),
-        ),
-        child: Text(
-          messageModel.messageText,
-          style: TextStyle(color: Colors.white, height: 1.5),
+    return GestureDetector(
+      onLongPress: () async {
+        await Clipboard.setData(ClipboardData(text: messageModel.messageText));
+        showSnackBar(context, "Pesan disalin");
+      },
+      child: DefaultTextStyle(
+        style: TextStyle(fontSize: 18),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: isMine
+                ? Theme.of(context).primaryColor.withOpacity(.75)
+                : Theme.of(context).primaryColor.withOpacity(.15),
+          ),
+          child: Text(
+            messageModel.messageText,
+            style: TextStyle(color: Colors.white, height: 1.5),
+          ),
         ),
       ),
     );
@@ -290,11 +297,15 @@ Text MyText(
 }
 
 // @ MySnackBar
-SnackBar MySnackBar(String content) {
+SnackBar MySnackBar(
+  String content, {
+  Duration duration = const Duration(seconds: 1),
+}) {
   return SnackBar(
     content: Text(content),
     behavior: SnackBarBehavior.floating,
     margin: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+    duration: duration,
   );
 }
 
