@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:chaty/features/chat/models/chat_model.dart';
+import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,6 +12,7 @@ class MyButton extends StatelessWidget {
   final Widget child;
   bool isPrimary;
   Color? backgroundColor;
+  BorderRadiusGeometry? borderRadius;
 
   MyButton({
     super.key,
@@ -18,6 +20,7 @@ class MyButton extends StatelessWidget {
     required this.child,
     this.isPrimary = true,
     this.backgroundColor,
+    this.borderRadius,
   });
 
   @override
@@ -33,8 +36,8 @@ class MyButton extends StatelessWidget {
         foregroundColor: Colors.white,
         shape: !isPrimary
             ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
-                side: BorderSide(color: Colors.white.withOpacity(.75)),
+                borderRadius: BorderRadius.circular(10),
+                // side: BorderSide(color: Colors.white.withOpacity(.75)),
               )
             : null,
       ),
@@ -73,7 +76,7 @@ class MyTextField extends StatelessWidget {
     this.validator,
     this.border,
     this.suffixIcon,
-    this.maxLines,
+    this.maxLines = 1,
     this.autofocus = false,
   });
 
@@ -82,7 +85,7 @@ class MyTextField extends StatelessWidget {
     return TextFormField(
       autofocus: autofocus,
       controller: controller,
-      maxLines: obscureText ? 1 : maxLines ?? null,
+      maxLines: obscureText ? 1 : maxLines,
       onChanged: onChanged,
       autovalidateMode: autovalidateMode,
       keyboardType: keyboardType,
@@ -109,12 +112,11 @@ class MyTextField extends StatelessWidget {
               borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
               borderRadius: BorderRadius.circular(30),
             ),
-        focusedBorder: border ??
-            OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: Theme.of(context).primaryColor, width: 2),
-              borderRadius: BorderRadius.circular(30),
-            ),
+        focusedBorder: OutlineInputBorder(
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2),
+          borderRadius: BorderRadius.circular(30),
+        ),
         enabledBorder: border ??
             OutlineInputBorder(
               borderSide: BorderSide(color: Colors.white.withOpacity(.25)),
@@ -138,10 +140,29 @@ class ChatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var aw = chatModel.users.where((element) => element != currentUserId);
+
     return ListTile(
-      title: Text(
-          chatModel.users.where((element) => element != currentUserId).first),
+      title: Text("AW"),
       minVerticalPadding: 25,
+    );
+  }
+}
+
+// @ Chat Bubble
+class ChatBubble extends StatelessWidget {
+  final MessageModel messageModel;
+  const ChatBubble({super.key, required this.messageModel});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor,
+      ),
+      child: Text(messageModel.messageText),
     );
   }
 }
@@ -166,10 +187,12 @@ Text MyText(
   double? fontSize,
   FontWeight? fontWeight,
   double? letterSpacing,
+  Color? color,
 }) {
   return Text(
     text,
     style: TextStyle(
+      color: color,
       fontSize: fontSize,
       fontWeight: fontWeight,
       letterSpacing: letterSpacing,

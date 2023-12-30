@@ -13,7 +13,8 @@ class UserModel {
     required this.username,
     required this.email,
     required this.fullName,
-    this.photoUrl = "",
+    this.photoUrl =
+        "https://res.cloudinary.com/unlinked/image/upload/v1703853324/cute-angry-red-dinosaur-cartoon-vector-icon-illustration-animal-nature-icon-concept-isolated-flat_138676-6013_nxzvjz.jpg",
     required this.createdAt,
   });
 

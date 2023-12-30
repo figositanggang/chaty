@@ -1,22 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatModel {
-  final String id;
-  final List messages;
+  final String chatId;
+  final String lastMessage;
   final List users;
   final Timestamp createdAt;
 
   ChatModel({
-    required this.id,
-    required this.messages,
+    required this.chatId,
     required this.users,
+    required this.lastMessage,
     required this.createdAt,
   });
 
   Map<String, dynamic> toJson() => {
-        "id": this.id,
-        "messages": this.messages,
+        "chatId": this.chatId,
         "users": this.users,
+        "lastMessage": this.lastMessage,
         "createdAt": this.createdAt,
       };
 
@@ -24,9 +24,9 @@ class ChatModel {
     final snap = snapshot.data() as Map<String, dynamic>;
 
     return ChatModel(
-      id: snap["id"],
-      messages: snap["messages"],
+      chatId: snap["chatId"],
       users: snap["users"],
+      lastMessage: snap["lastMessage"],
       createdAt: snap["createdAt"],
     );
   }

@@ -1,3 +1,4 @@
+import 'package:chaty/features/chat/pages/chatting_page.dart';
 import 'package:chaty/features/user/helpers/user_helper.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/main.dart';
@@ -59,17 +60,45 @@ class _TambahChatPageState extends State<TambahChatPage> {
 
           if (searchedUser.isEmpty) {
             return Center(
-              child: Text("User tidak ditemukan"),
+              child: Icon(
+                Icons.search,
+                size: 100,
+                color: Theme.of(context).primaryColor.withOpacity(.5),
+              ),
             );
           }
 
           return ListView.builder(
             itemCount: searchedUser.length,
             itemBuilder: (context, index) {
-              final userModel = searchedUser[index];
+              final otherUserModel = searchedUser[index];
 
               return ListTile(
-                title: Text(userModel.username),
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MyRoute(ChattingPage(
+                      currentUserModel: widget.currentUser,
+                      otherUserModel: otherUserModel,
+                    )),
+                  );
+                },
+                leading: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    image: DecorationImage(
+                      image: NetworkImage(otherUserModel.photoUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                title: Text(otherUserModel.fullName),
+                subtitle: MyText(
+                  otherUserModel.username,
+                  color: Colors.white.withOpacity(.5),
+                ),
               );
             },
           );
@@ -80,16 +109,14 @@ class _TambahChatPageState extends State<TambahChatPage> {
 
   // ! Search user with username
   Future<void> searchUsername(String text) async {
-    await Future.delayed(Duration(milliseconds: 250));
+    if (text.isEmpty) return;
 
     List<UserModel> users = await UserHelper.getAllUsers();
     users.removeWhere((element) {
       return element.userId == currentUser.id;
     });
 
-    if (users.isEmpty || text.isEmpty) {
-      return;
-    }
+    if (users.isEmpty) return;
 
     List<UserModel> temp = [];
 

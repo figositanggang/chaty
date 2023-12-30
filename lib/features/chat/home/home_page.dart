@@ -25,7 +25,6 @@ class _HomePageState extends State<HomePage> {
   final UserController userController = Get.put(UserController());
 
   late Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUser;
-  late Stream<QuerySnapshot<Map<String, dynamic>>> getMyChats;
 
   @override
   void initState() {
@@ -39,82 +38,94 @@ class _HomePageState extends State<HomePage> {
       userController.setUserModel(UserModel.fromSnapshot(value));
       return value;
     });
-    getMyChats = ChatHelper.getMyChats();
+  }
+
+  void refresh() {
+    getCurrentUser = AuthHelper.firestore
+        .collection("users")
+        .doc(currentUser.id)
+        .get()
+        .then((value) {
+      userController.setUserModel(UserModel.fromSnapshot(value));
+      return value;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: kIsWeb ? true : false,
-        title: FutureBuilder(
-          future: getCurrentUser,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text("");
-            }
+    return FutureBuilder(
+      future: getCurrentUser,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return FullScreenLoading();
+        }
 
-            UserModel userModel = UserModel.fromSnapshot(snapshot.data!);
-            return Text("Halo ${userModel.fullName.split(" ")[0]}");
-          },
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.search),
+        return Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: kIsWeb ? true : false,
+            title:
+                Text("Halo ${userController.userModel.fullName.split(" ")[0]}"),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.search),
+              ),
+              SizedBox(width: 10),
+            ],
           ),
-          SizedBox(width: 10),
-        ],
-      ),
-      body: StreamBuilder(
-        stream: getMyChats,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+          body: StreamBuilder(
+            stream: ChatHelper.getMyChats(currentUser.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
 
-          if (snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Text("Belum ada chats"),
-            );
-          }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: Text("Belum ada chats"),
+                );
+              }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Text("Ada kesalahan"),
-            );
-          }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text("Ada kesalahan"),
+                );
+              }
 
-          final docs = snapshot.data!.docs;
-          return ListView.builder(
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
-              return ChatCard(
-                chatModel: chatModel,
-                currentUserId: currentUser.id,
+              // @ All My Chats
+              final docs = snapshot.data!.docs;
+              return ListView.builder(
+                itemCount: docs.length,
+                itemBuilder: (context, index) {
+                  ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
+
+                  return ChatCard(
+                    chatModel: chatModel,
+                    currentUserId: currentUser.id,
+                  );
+                },
               );
             },
-          );
-        },
-      ),
-      drawer: HomeDrawer(),
-      drawerEdgeDragWidth: MediaQuery.sizeOf(context).width - 100,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MyRoute(
-              TambahChatPage(
-                currentUser: userController.userModel,
-              ),
-            ),
-          );
-        },
-        child: Icon(Icons.edit),
-      ),
+          ),
+          drawer: HomeDrawer(),
+          drawerEdgeDragWidth: MediaQuery.sizeOf(context).width - 100,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MyRoute(
+                  TambahChatPage(
+                    currentUser: userController.userModel,
+                  ),
+                ),
+              );
+            },
+            child: Icon(Icons.edit),
+          ),
+        );
+      },
     );
   }
 }
