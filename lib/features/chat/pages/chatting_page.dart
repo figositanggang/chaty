@@ -35,6 +35,8 @@ class _ChattingPageState extends State<ChattingPage> {
 
   final ChatController chatController = Get.put(ChatController());
 
+  final formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +49,7 @@ class _ChattingPageState extends State<ChattingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       // @ App Bar
       appBar: AppBar(
         titleSpacing: 0,
@@ -59,11 +62,11 @@ class _ChattingPageState extends State<ChattingPage> {
             children: [
               // @ User Avatar
               Container(
-                height: 25,
-                width: 25,
+                height: 30,
+                width: 30,
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(10),
+                  shape: BoxShape.circle,
                   image: DecorationImage(
                     image: NetworkImage(otherUserModel.photoUrl),
                     fit: BoxFit.cover,
@@ -116,26 +119,30 @@ class _ChattingPageState extends State<ChattingPage> {
 
                           return false;
                         },
-                        child: ListView.builder(
-                          controller: chatController.scrollController,
-                          itemCount: docs.length,
-                          itemBuilder: (context, index) {
-                            MessageModel messageModel =
-                                MessageModel.fromSnapshot(docs[index]);
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: 10),
+                          child: ListView.builder(
+                            controller: chatController.scrollController,
+                            itemCount: docs.length,
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            itemBuilder: (context, index) {
+                              MessageModel messageModel =
+                                  MessageModel.fromSnapshot(docs[index]);
 
-                            // @ Message Bubble
-                            return Align(
-                              alignment: messageModel.senderId ==
-                                      currentUserModel.userId
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                              child: MessageBubble(
-                                isMine: messageModel.senderId ==
-                                    currentUserModel.userId,
-                                messageModel: messageModel,
-                              ),
-                            );
-                          },
+                              // @ Message Bubble
+                              return Align(
+                                alignment: messageModel.senderId ==
+                                        currentUserModel.userId
+                                    ? Alignment.centerRight
+                                    : Alignment.centerLeft,
+                                child: MessageBubble(
+                                  isMine: messageModel.senderId ==
+                                      currentUserModel.userId,
+                                  messageModel: messageModel,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       );
                     },
@@ -158,81 +165,57 @@ class _ChattingPageState extends State<ChattingPage> {
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  // @ Text Field
-                  Obx(
-                    () => Expanded(
-                      child: MyTextField(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                              color: Theme.of(context)
-                                  .primaryColor
-                                  .withOpacity(.5)),
+
+              // @ FORM
+              child: Form(
+                key: formKey,
+                child: Row(
+                  children: [
+                    // @ Text Field
+                    Obx(
+                      () => Expanded(
+                        child: MyTextField(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(
+                                color: Theme.of(context)
+                                    .primaryColor
+                                    .withOpacity(.5)),
+                          ),
+                          onFieldSubmitted: (value) {
+                            createOrSend(
+                              chatController,
+                              messageText: value.trim(),
+                            );
+                          },
+                          autovalidateMode: AutovalidateMode.disabled,
+                          controller: chatController.messageController,
+                          hintText: "Masukkan pesan..",
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          maxLines: null,
                         ),
-                        autovalidateMode: AutovalidateMode.disabled,
-                        controller: chatController.messageController,
-                        hintText: "Masukkan pesan..",
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        maxLines: null,
                       ),
                     ),
-                  ),
 
-                  // @ Send Message Button
-                  IconButton(
-                    onPressed: () async {
-                      String messageText =
-                          chatController.messageController.text.trim();
-                      chatController.setMessageController(
-                          TextEditingController(text: ""));
-
-                      // ! Create New Chat
-                      if (chatModel == null) {
-                        ChatModel? _chatModel = await ChatHelper.createNewChat(
-                          otherUserId: otherUserModel.userId,
-                          currentUserId: currentUserModel.userId,
-                          messageModel: MessageModel(
-                            senderId: currentUserModel.userId,
-                            messageText: messageText,
-                            createdAt: Timestamp.now(),
-                            position: chatController.scrollController.hasClients
-                                ? chatController
-                                    .scrollController.position.maxScrollExtent
-                                : 0.0,
-                          ),
-                        );
-
-                        setState(() {
-                          chatModel = _chatModel;
-                        });
-                      }
-
-                      // ! Send Message
-                      else {
-                        await ChatHelper.sendMessage(
-                          chatId: chatModel!.chatId,
-                          currentUserId: currentUserModel.userId,
-                          messageText: messageText,
-                          position: chatController.scrollController.hasClients
-                              ? chatController
-                                  .scrollController.position.maxScrollExtent
-                              : 0.0,
-                        );
-                      }
-
-                      scrollToBottom(chatController.scrollController);
-
-                      chatController.setMessageController(
-                          TextEditingController(text: ""));
-                    },
-                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                    icon: Icon(Icons.send),
-                    color: Theme.of(context).primaryColor,
-                  )
-                ],
+                    // @ Send Message Button
+                    IconButton(
+                      onPressed: () async {
+                        if (formKey.currentState!.validate()) {
+                          createOrSend(
+                            chatController,
+                            messageText:
+                                chatController.messageController.text.trim(),
+                          );
+                        }
+                      },
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                      icon: Icon(Icons.send),
+                      color: Theme.of(context).primaryColor,
+                    )
+                  ],
+                ),
               ),
             ),
           ),
@@ -261,4 +244,74 @@ class _ChattingPageState extends State<ChattingPage> {
       });
     } catch (e) {}
   }
+
+  // ! Create Chat or Send Message
+  void createOrSend(
+    ChatController chatController, {
+    required String messageText,
+  }) async {
+    chatController.setMessageController(TextEditingController(text: ""));
+
+    // ! Create New Chat
+    if (chatModel == null) {
+      ChatModel? _chatModel = await ChatHelper.createNewChat(
+        otherUserId: otherUserModel.userId,
+        currentUserId: currentUserModel.userId,
+        messageModel: MessageModel(
+          senderId: currentUserModel.userId,
+          messageText: messageText,
+          createdAt: Timestamp.now(),
+          position: chatController.scrollController.hasClients
+              ? chatController.scrollController.position.maxScrollExtent
+              : 0.0,
+        ),
+      );
+
+      setState(() {
+        chatModel = _chatModel;
+      });
+    }
+
+    // ! Send Message
+    else {
+      await ChatHelper.sendMessage(
+        chatId: chatModel!.chatId,
+        currentUserId: currentUserModel.userId,
+        messageText: messageText,
+        position: chatController.scrollController.hasClients
+            ? chatController.scrollController.position.maxScrollExtent
+            : 0.0,
+      );
+    }
+
+    scrollToBottom(chatController.scrollController);
+
+    chatController.setMessageController(TextEditingController(text: ""));
+  }
 }
+
+// Hello young lady, can we talk?
+
+// Jadi gini...
+// Kenapa aku kemarin add friend kamu di facebook...
+// Kenapa aku ngechat kamu panjang2, ngajak jalan, dan lain-lain...
+// Ya tentu karena aku tertarik sama kamu
+// Jadi aku memberanikan diri untuk mendekati kamu
+// Nah, kenapa aku mau memberanikan diri untuk mendekati kamu?
+// Karena aku ngeliat kamu juga seperti tertarik kepadaku
+// Nah sekarang, yang ini betul gk?
+
+//? Jika betul
+// Nah, kan kalo orang sama2 suka biasa mereka pacaran kan..
+// Tapi aku belum mau pacaran, karena aku masih belum menghasilkan apa2, masih dibiayai orang tua
+// Jadi aku memutuskan untuk tidak mengajakmu berpacaran
+// Aku mau kita berteman seperti biasa, mengenal satu sama lain
+// 
+// Nanti, kalo kamu jumpa dengan lelaki yang suka samamu dan sebaliknya, tidak apa-apa jika kalian berhubungan atau berpacaran
+// Yang penting sudah ada kepastian
+// ..
+
+//? Jika salah
+// Oh maaf kalo aku sudah berpikiran seperi itu
+// Hanya memastikan saja
+// Biar gk sukkun2 roha ini wkwk

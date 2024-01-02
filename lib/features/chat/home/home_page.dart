@@ -23,6 +23,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final currentUser = supabase.auth.currentUser!;
   final UserController userController = Get.put(UserController());
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   late Future<DocumentSnapshot<Map<String, dynamic>>> getCurrentUser;
 
@@ -61,6 +62,7 @@ class _HomePageState extends State<HomePage> {
         }
 
         return Scaffold(
+          key: scaffoldKey,
           appBar: AppBar(
             automaticallyImplyLeading: kIsWeb ? true : false,
             title: Text(
@@ -98,6 +100,7 @@ class _HomePageState extends State<HomePage> {
               final docs = snapshot.data!.docs;
               return ListView.builder(
                 itemCount: docs.length,
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 itemBuilder: (context, index) {
                   ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
 
@@ -109,9 +112,13 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          drawer: HomeDrawer(),
+          drawer: HomeDrawer(
+            userModel: userController.currentUser,
+            scaffoldKey: scaffoldKey,
+          ),
           drawerEdgeDragWidth: MediaQuery.sizeOf(context).width - 100,
           floatingActionButton: FloatingActionButton(
+            tooltip: "Tambah chat",
             onPressed: () {
               Navigator.push(
                 context,

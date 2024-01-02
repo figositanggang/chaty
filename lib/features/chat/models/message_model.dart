@@ -4,7 +4,7 @@ class MessageModel {
   final String senderId;
   final String messageText;
   final Timestamp createdAt;
-  final double position;
+  final num position;
 
   MessageModel({
     required this.senderId,

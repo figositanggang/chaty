@@ -17,6 +17,7 @@ class MyButton extends StatelessWidget {
   bool isPrimary;
   Color? backgroundColor;
   BorderRadiusGeometry? borderRadius;
+  Color? foregroundColor;
 
   MyButton({
     super.key,
@@ -25,6 +26,7 @@ class MyButton extends StatelessWidget {
     this.isPrimary = true,
     this.backgroundColor,
     this.borderRadius,
+    this.foregroundColor = Colors.white,
   });
 
   @override
@@ -37,13 +39,10 @@ class MyButton extends StatelessWidget {
         backgroundColor: isPrimary
             ? backgroundColor ?? Theme.of(context).colorScheme.primary
             : Theme.of(context).buttonTheme.colorScheme!.background,
-        foregroundColor: Colors.white,
-        shape: !isPrimary
-            ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-                // side: BorderSide(color: Colors.white.withOpacity(.75)),
-              )
-            : null,
+        foregroundColor: foregroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: borderRadius ?? BorderRadius.circular(30),
+        ),
       ),
     );
   }
@@ -65,6 +64,7 @@ class MyTextField extends StatelessWidget {
   Widget? suffixIcon;
   int? maxLines;
   bool autofocus;
+  void Function(String value)? onFieldSubmitted;
 
   MyTextField({
     super.key,
@@ -82,6 +82,7 @@ class MyTextField extends StatelessWidget {
     this.suffixIcon,
     this.maxLines = 1,
     this.autofocus = false,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -108,6 +109,7 @@ class MyTextField extends StatelessWidget {
       onTapOutside: (event) {
         FocusManager.instance.primaryFocus!.unfocus();
       },
+      onFieldSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
         contentPadding: EdgeInsets.all(20),
         hintText: hintText,
@@ -187,40 +189,82 @@ class OtherUserCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final lastMessage = MessageModel.fromMap(chatModel.lastMessage);
 
-    return ListTile(
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MyRoute(ChattingPage(
-            chatModel: chatModel,
-            currentUserModel: currentUserModel,
-            otherUserModel: otherUserModel,
-          )),
-        );
-      },
-      leading: Container(
-        height: 50,
-        width: 50,
-        decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(10),
-          image: DecorationImage(
-            image: NetworkImage(otherUserModel.photoUrl),
-            fit: BoxFit.cover,
-            filterQuality: FilterQuality.low,
+    return Material(
+      elevation: 15,
+      shadowColor: Colors.black.withOpacity(.5),
+      child: ListTile(
+        tileColor: Theme.of(context).primaryColor.withOpacity(.1),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        minVerticalPadding: 25,
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MyRoute(ChattingPage(
+              chatModel: chatModel,
+              currentUserModel: currentUserModel,
+              otherUserModel: otherUserModel,
+            )),
+          );
+        },
+        leading: GestureDetector(
+          onTap: () {
+            print("AW");
+          },
+          child: Container(
+            height: 55,
+            width: 55,
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: NetworkImage(otherUserModel.photoUrl),
+                fit: BoxFit.cover,
+                filterQuality: FilterQuality.low,
+              ),
+            ),
           ),
         ),
-      ),
-      title: Text(
-        otherUserModel.fullName,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      subtitle: MyText(
-        lastMessage.messageText,
-        color: Colors.white.withOpacity(.5),
-        overflow: TextOverflow.ellipsis,
+        title: Text(
+          otherUserModel.fullName,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: MyText(
+          "Terakhir: ${lastMessage.messageText}",
+          maxLines: 1,
+          color: Colors.white.withOpacity(.5),
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Text(formatDate(
+          DateTime.now(),
+          lastMessage.createdAt.toDate(),
+        )),
       ),
     );
+  }
+
+  String formatDate(DateTime now, DateTime createdAt) {
+    final difference = now.difference(createdAt);
+
+    if (difference.inDays > 365) {
+      return "${difference.inDays / 365} tahun lalu";
+    }
+    if (difference.inDays > 30) {
+      return "${difference.inDays / 30} bulan lalu";
+    }
+    if (difference.inDays > 7) {
+      return "${difference.inDays / 7} minggu lalu";
+    }
+    if (difference.inDays > 0 && difference.inDays < 7) {
+      return "${difference.inDays} hari lalu";
+    }
+    if (difference.inHours > 0) {
+      return "${difference.inHours} jam lalu";
+    }
+    if (difference.inMinutes > 0) {
+      return "${difference.inMinutes} menit lalu";
+    }
+
+    return "baru saja";
   }
 }
 
@@ -248,14 +292,23 @@ class MessageBubble extends StatelessWidget {
         style: TextStyle(fontSize: 18),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-          margin: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+          margin: EdgeInsets.symmetric(vertical: 5),
           constraints:
               BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: isMine
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(.5),
+                      offset: Offset(-2, 2),
+                      blurRadius: 15,
+                    ),
+                  ]
+                : [],
             color: isMine
-                ? Theme.of(context).primaryColor.withOpacity(.75)
-                : Theme.of(context).primaryColor.withOpacity(.15),
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).primaryColor.withOpacity(.2),
           ),
           child: Text(
             messageModel.messageText,
@@ -289,10 +342,12 @@ Text MyText(
   double? letterSpacing,
   Color? color,
   TextOverflow? overflow,
+  int? maxLines,
 }) {
   return Text(
     text,
     overflow: overflow,
+    maxLines: maxLines,
     style: TextStyle(
       color: color,
       fontSize: fontSize,
