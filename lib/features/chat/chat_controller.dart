@@ -1,3 +1,5 @@
+import 'package:chaty/features/chat/models/chat_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,5 +14,16 @@ class ChatController extends GetxController {
   ScrollController get scrollController => _scrollController.value;
   void setScrollController(ScrollController value) {
     _scrollController.value = value;
+  }
+
+  Rx<ChatModel>? chatModel = ChatModel(
+    chatId: "",
+    users: [],
+    lastPosition: 0,
+    lastMessage: {},
+    createdAt: Timestamp.now(),
+  ).obs;
+  void setChatModel(ChatModel value) {
+    chatModel!.value = value;
   }
 }

@@ -5,9 +5,11 @@ import 'package:chaty/features/chat/chat_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:chaty/features/user/models/user_model.dart';
+import 'package:chaty/features/user/pages/user_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_connect/http/src/_http/_stub/_file_decoder_stub.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_instance/get_instance.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
@@ -56,7 +58,12 @@ class _ChattingPageState extends State<ChattingPage> {
 
         // @ User Avatar & Name
         title: GestureDetector(
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MyRoute(UserPage(userModel: otherUserModel)),
+            );
+          },
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -136,6 +143,8 @@ class _ChattingPageState extends State<ChattingPage> {
                                     ? Alignment.centerRight
                                     : Alignment.centerLeft,
                                 child: MessageBubble(
+                                  chatId: chatModel!.chatId,
+                                  otherUserId: otherUserModel.userId,
                                   isMine: messageModel.senderId ==
                                       currentUserModel.userId,
                                   messageModel: messageModel,
@@ -251,13 +260,35 @@ class _ChattingPageState extends State<ChattingPage> {
     required String messageText,
   }) async {
     chatController.setMessageController(TextEditingController(text: ""));
+    try {
+      // ! Send Message
+      DocumentSnapshot snapshot = await ChatHelper.firestore
+          .collection("chats")
+          .doc(chatModel!.chatId)
+          .get();
 
-    // ! Create New Chat
-    if (chatModel == null) {
+      ChatModel _chatModel = ChatModel.fromSnapshot(snapshot);
+
+      await ChatHelper.sendMessage(
+        chatId: _chatModel.chatId,
+        currentUserId: currentUserModel.userId,
+        messageText: messageText,
+        position: chatController.scrollController.hasClients
+            ? chatController.scrollController.position.maxScrollExtent
+            : 0.0,
+      );
+    } catch (e) {
+      // ! Create New Chat
+      showDialog(
+        context: context,
+        builder: (context) => DialogLoading(),
+      );
+
       ChatModel? _chatModel = await ChatHelper.createNewChat(
         otherUserId: otherUserModel.userId,
         currentUserId: currentUserModel.userId,
         messageModel: MessageModel(
+          messageId: "",
           senderId: currentUserModel.userId,
           messageText: messageText,
           createdAt: Timestamp.now(),
@@ -267,21 +298,11 @@ class _ChattingPageState extends State<ChattingPage> {
         ),
       );
 
+      Navigator.pop(context);
+
       setState(() {
         chatModel = _chatModel;
       });
-    }
-
-    // ! Send Message
-    else {
-      await ChatHelper.sendMessage(
-        chatId: chatModel!.chatId,
-        currentUserId: currentUserModel.userId,
-        messageText: messageText,
-        position: chatController.scrollController.hasClients
-            ? chatController.scrollController.position.maxScrollExtent
-            : 0.0,
-      );
     }
 
     scrollToBottom(chatController.scrollController);
@@ -289,29 +310,3 @@ class _ChattingPageState extends State<ChattingPage> {
     chatController.setMessageController(TextEditingController(text: ""));
   }
 }
-
-// Hello young lady, can we talk?
-
-// Jadi gini...
-// Kenapa aku kemarin add friend kamu di facebook...
-// Kenapa aku ngechat kamu panjang2, ngajak jalan, dan lain-lain...
-// Ya tentu karena aku tertarik sama kamu
-// Jadi aku memberanikan diri untuk mendekati kamu
-// Nah, kenapa aku mau memberanikan diri untuk mendekati kamu?
-// Karena aku ngeliat kamu juga seperti tertarik kepadaku
-// Nah sekarang, yang ini betul gk?
-
-//? Jika betul
-// Nah, kan kalo orang sama2 suka biasa mereka pacaran kan..
-// Tapi aku belum mau pacaran, karena aku masih belum menghasilkan apa2, masih dibiayai orang tua
-// Jadi aku memutuskan untuk tidak mengajakmu berpacaran
-// Aku mau kita berteman seperti biasa, mengenal satu sama lain
-// 
-// Nanti, kalo kamu jumpa dengan lelaki yang suka samamu dan sebaliknya, tidak apa-apa jika kalian berhubungan atau berpacaran
-// Yang penting sudah ada kepastian
-// ..
-
-//? Jika salah
-// Oh maaf kalo aku sudah berpikiran seperi itu
-// Hanya memastikan saja
-// Biar gk sukkun2 roha ini wkwk

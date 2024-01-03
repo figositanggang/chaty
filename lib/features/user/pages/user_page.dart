@@ -4,12 +4,12 @@ import 'package:intl/intl.dart';
 
 class UserPage extends StatefulWidget {
   final UserModel userModel;
-  final GlobalKey<ScaffoldState> scaffoldKey;
+  final GlobalKey<ScaffoldState>? scaffoldKey;
 
   const UserPage({
     super.key,
     required this.userModel,
-    required this.scaffoldKey,
+    this.scaffoldKey,
   });
 
   @override
@@ -31,9 +31,11 @@ class _UserPageState extends State<UserPage> {
   }
 
   void closeDrawer() async {
-    try {
-      widget.scaffoldKey.currentState!.closeDrawer();
-    } catch (e) {}
+    if (widget.scaffoldKey != null) {
+      try {
+        widget.scaffoldKey!.currentState!.closeDrawer();
+      } catch (e) {}
+    }
   }
 
   @override
@@ -68,6 +70,7 @@ class _UserPageState extends State<UserPage> {
               children: [
                 InkWell(
                   onTap: () {},
+                  customBorder: CircleBorder(),
                   child: Ink(
                     height: 150,
                     width: 150,

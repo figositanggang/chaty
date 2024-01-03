@@ -59,20 +59,31 @@ class ChatHelper {
       await firestore.collection("users").doc(currentUserId).update({
         "chats": [chatReference.id]
       });
+      await firestore.collection("users").doc(otherUserId).update({
+        "chats": [chatReference.id]
+      });
 
       // ! Send New Message
-      await firestore
+      DocumentReference messageRef = await firestore
           .collection("chats")
           .doc(chatReference.id)
           .collection("messages")
           .add(
             MessageModel(
+              messageId: "",
               senderId: currentUserId,
               messageText: messageModel.messageText,
               createdAt: Timestamp.now(),
               position: messageModel.position,
             ).toMap(),
           );
+
+      await firestore
+          .collection("chats")
+          .doc(chatReference.id)
+          .collection("messages")
+          .doc(messageRef.id)
+          .update({"messageId": messageRef.id});
 
       chatModel = ChatModel.fromSnapshot(
           await firestore.collection("chats").doc(chatReference.id).get());
@@ -89,13 +100,17 @@ class ChatHelper {
     required double position,
   }) async {
     try {
+      DocumentSnapshot chatReference =
+          await firestore.collection("chats").doc(chatId).get();
+
       // ! Send Message
-      await firestore
+      DocumentReference messageRef = await firestore
           .collection("chats")
           .doc(chatId)
           .collection("messages")
           .add(
             MessageModel(
+              messageId: "",
               senderId: currentUserId,
               messageText: messageText,
               createdAt: Timestamp.now(),
@@ -106,12 +121,55 @@ class ChatHelper {
       // ! Update Last Message
       await firestore.collection("chats").doc(chatId).update({
         "lastMessage": MessageModel(
+          messageId: "",
           senderId: currentUserId,
           messageText: messageText,
           createdAt: Timestamp.now(),
           position: position,
         ).toMap(),
       });
+
+      await firestore
+          .collection("chats")
+          .doc(chatReference.id)
+          .collection("messages")
+          .doc(messageRef.id)
+          .update({"messageId": messageRef.id});
     } catch (e) {}
+  }
+
+  // ! DELETE Message
+  static Future deleteMessage({
+    required String userId,
+    required String otherUserId,
+    required String chatId,
+    required String messageId,
+  }) async {
+    try {
+      await firestore
+          .collection("chats")
+          .doc(chatId)
+          .collection("messages")
+          .doc(messageId)
+          .delete();
+
+      final querySnapshot = await firestore
+          .collection("chats")
+          .doc(chatId)
+          .collection("messages")
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        await firestore.collection("chats").doc(chatId).delete();
+
+        await firestore.collection("users").doc(userId).update({"chats": []});
+        await firestore
+            .collection("users")
+            .doc(otherUserId)
+            .update({"chats": []});
+      }
+    } catch (e) {
+      print("GAGAL: $e");
+    }
   }
 }

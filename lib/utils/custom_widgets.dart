@@ -1,10 +1,12 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:chaty/features/chat/chat_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:chaty/features/chat/pages/chatting_page.dart';
 import 'package:chaty/features/user/helpers/user_helper.dart';
 import 'package:chaty/features/user/models/user_model.dart';
+import 'package:chaty/features/user/pages/user_page.dart';
 import 'package:chaty/utils/custom_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -208,7 +210,10 @@ class OtherUserCard extends StatelessWidget {
         },
         leading: GestureDetector(
           onTap: () {
-            print("AW");
+            Navigator.push(
+              context,
+              MyRoute(UserPage(userModel: otherUserModel)),
+            );
           },
           child: Container(
             height: 55,
@@ -234,49 +239,28 @@ class OtherUserCard extends StatelessWidget {
           color: Colors.white.withOpacity(.5),
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: Text(formatDate(
+        trailing: Text(differenceDate(
           DateTime.now(),
           lastMessage.createdAt.toDate(),
         )),
       ),
     );
   }
-
-  String formatDate(DateTime now, DateTime createdAt) {
-    final difference = now.difference(createdAt);
-
-    if (difference.inDays > 365) {
-      return "${difference.inDays / 365} tahun lalu";
-    }
-    if (difference.inDays > 30) {
-      return "${difference.inDays / 30} bulan lalu";
-    }
-    if (difference.inDays > 7) {
-      return "${difference.inDays / 7} minggu lalu";
-    }
-    if (difference.inDays > 0 && difference.inDays < 7) {
-      return "${difference.inDays} hari lalu";
-    }
-    if (difference.inHours > 0) {
-      return "${difference.inHours} jam lalu";
-    }
-    if (difference.inMinutes > 0) {
-      return "${difference.inMinutes} menit lalu";
-    }
-
-    return "baru saja";
-  }
 }
 
 // @ Message Bubble
 class MessageBubble extends StatelessWidget {
+  final String chatId;
+  final String otherUserId;
   final MessageModel messageModel;
 
   // ! is this my chat or not
   final bool isMine;
 
-  const MessageBubble({
+  MessageBubble({
     super.key,
+    required this.chatId,
+    required this.otherUserId,
     required this.messageModel,
     required this.isMine,
   });
@@ -284,14 +268,53 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPress: () async {
-        await Clipboard.setData(ClipboardData(text: messageModel.messageText));
-        showSnackBar(context, "Pesan disalin");
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (context) => SimpleDialog(
+            contentPadding: EdgeInsets.zero,
+            children: [
+              // @ Copy Message Button
+              MyButton(
+                onPressed: () async {
+                  await Clipboard.setData(
+                      ClipboardData(text: messageModel.messageText));
+                  showSnackBar(context, "Pesan disalin");
+
+                  Navigator.pop(context);
+                },
+                isPrimary: false,
+                borderRadius: BorderRadius.zero,
+                child: Text("Salin pesan"),
+              ),
+              Divider(height: 0),
+
+              // @ Delete Message Button
+              MyButton(
+                onPressed: () async {
+                  await ChatHelper.deleteMessage(
+                    userId: messageModel.senderId,
+                    otherUserId: otherUserId,
+                    chatId: chatId,
+                    messageId: messageModel.messageId,
+                  );
+
+                  Navigator.pop(context);
+                },
+                isPrimary: false,
+                borderRadius: BorderRadius.zero,
+                child: Text("Hapus pesan"),
+                foregroundColor: Colors.red,
+              ),
+              Divider(height: 0),
+            ],
+          ),
+        );
       },
       child: DefaultTextStyle(
         style: TextStyle(fontSize: 18),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           margin: EdgeInsets.symmetric(vertical: 5),
           constraints:
               BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
@@ -310,9 +333,23 @@ class MessageBubble extends StatelessWidget {
                 ? Theme.of(context).primaryColor
                 : Theme.of(context).primaryColor.withOpacity(.2),
           ),
-          child: Text(
-            messageModel.messageText,
-            style: TextStyle(color: Colors.white, height: 1.5),
+          child: Column(
+            crossAxisAlignment:
+                isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              // @ Message Text
+              Text(
+                messageModel.messageText,
+                style: TextStyle(color: Colors.white, height: 1.5),
+              ),
+              SizedBox(height: 5),
+
+              // @ Message Created At
+              Text(
+                "${messageModel.createdAt.toDate().hour}:${messageModel.createdAt.toDate().minute}",
+                style: TextStyle(color: Colors.white.withOpacity(.5)),
+              ),
+            ],
           ),
         ),
       ),
@@ -375,6 +412,17 @@ Material FullScreenLoading() {
   return Material(
     child: Center(
       child: CircularProgressIndicator(),
+    ),
+  );
+}
+
+// @ Dialog Loading
+Widget DialogLoading() {
+  return Dialog(
+    child: Center(
+      child: CircularProgressIndicator(),
+      heightFactor: 3,
+      widthFactor: 1,
     ),
   );
 }

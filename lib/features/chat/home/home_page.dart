@@ -7,7 +7,6 @@ import 'package:chaty/features/chat/home/home-drawer.dart';
 import 'package:chaty/features/chat/pages/new_chat_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:chaty/main.dart';
 import 'package:get/get_core/get_core.dart';
@@ -64,7 +63,6 @@ class _HomePageState extends State<HomePage> {
         return Scaffold(
           key: scaffoldKey,
           appBar: AppBar(
-            automaticallyImplyLeading: kIsWeb ? true : false,
             title: Text(
                 "Halo ${userController.currentUser.fullName.split(" ")[0]}"),
             actions: [
