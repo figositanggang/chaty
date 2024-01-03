@@ -96,17 +96,22 @@ class _HomePageState extends State<HomePage> {
 
               // @ All My Chats
               final docs = snapshot.data!.docs;
-              return ListView.builder(
-                itemCount: docs.length,
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                itemBuilder: (context, index) {
-                  ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
-
-                  return ChatCard(
-                    chatModel: chatModel,
-                    currentUserModel: userController.currentUser,
-                  );
+              return RefreshIndicator(
+                onRefresh: () async {
+                  setState(() {});
                 },
+                child: ListView.builder(
+                  itemCount: docs.length,
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  itemBuilder: (context, index) {
+                    ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
+
+                    return ChatCard(
+                      chatModel: chatModel,
+                      currentUserModel: userController.currentUser,
+                    );
+                  },
+                ),
               );
             },
           ),

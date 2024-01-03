@@ -1,15 +1,18 @@
 import 'package:chaty/features/user/models/user_model.dart';
+import 'package:chaty/utils/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class UserPage extends StatefulWidget {
   final UserModel userModel;
+  final bool isMine;
   final GlobalKey<ScaffoldState>? scaffoldKey;
 
   const UserPage({
     super.key,
     required this.userModel,
     this.scaffoldKey,
+    required this.isMine,
   });
 
   @override
@@ -69,7 +72,10 @@ class _UserPageState extends State<UserPage> {
             Stack(
               children: [
                 InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                        context, MyRoute(UserAvatar(userModel.photoUrl)));
+                  },
                   customBorder: CircleBorder(),
                   child: Ink(
                     height: 150,
@@ -83,18 +89,20 @@ class _UserPageState extends State<UserPage> {
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.edit),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white.withOpacity(.9),
-                      foregroundColor: Colors.black,
-                    ),
-                  ),
-                ),
+                widget.isMine
+                    ? Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.edit),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(.9),
+                            foregroundColor: Colors.black,
+                          ),
+                        ),
+                      )
+                    : SizedBox.shrink(),
               ],
             ),
             SizedBox(height: 20),
@@ -143,4 +151,8 @@ class _UserPageState extends State<UserPage> {
       ),
     );
   }
+}
+
+InteractiveViewer UserAvatar(String src) {
+  return InteractiveViewer(child: Image.network(src));
 }

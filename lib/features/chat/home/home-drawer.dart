@@ -44,6 +44,7 @@ class HomeDrawer extends StatelessWidget {
                     Navigator.push(
                         context,
                         MyRoute(UserPage(
+                          isMine: true,
                           scaffoldKey: scaffoldKey,
                           userModel: userModel,
                         )));

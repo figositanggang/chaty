@@ -9,7 +9,6 @@ import 'package:chaty/features/user/pages/user_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_connect/http/src/_http/_stub/_file_decoder_stub.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_instance/get_instance.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
@@ -61,7 +60,10 @@ class _ChattingPageState extends State<ChattingPage> {
           onTap: () {
             Navigator.push(
               context,
-              MyRoute(UserPage(userModel: otherUserModel)),
+              MyRoute(UserPage(
+                userModel: otherUserModel,
+                isMine: false,
+              )),
             );
           },
           child: Row(

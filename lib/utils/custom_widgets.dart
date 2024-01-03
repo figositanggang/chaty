@@ -212,7 +212,10 @@ class OtherUserCard extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MyRoute(UserPage(userModel: otherUserModel)),
+              MyRoute(UserPage(
+                isMine: false,
+                userModel: otherUserModel,
+              )),
             );
           },
           child: Container(
@@ -312,14 +315,15 @@ class MessageBubble extends StatelessWidget {
         );
       },
       child: DefaultTextStyle(
-        style: TextStyle(fontSize: 18),
+        style: TextStyle(
+            fontSize: 18, color: isMine ? Colors.black : Colors.white),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           margin: EdgeInsets.symmetric(vertical: 5),
           constraints:
               BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(15),
             boxShadow: isMine
                 ? [
                     BoxShadow(
@@ -329,9 +333,7 @@ class MessageBubble extends StatelessWidget {
                     ),
                   ]
                 : [],
-            color: isMine
-                ? Theme.of(context).primaryColor
-                : Theme.of(context).primaryColor.withOpacity(.2),
+            color: isMine ? Colors.white : Colors.white.withOpacity(.1),
           ),
           child: Column(
             crossAxisAlignment:
@@ -340,14 +342,18 @@ class MessageBubble extends StatelessWidget {
               // @ Message Text
               Text(
                 messageModel.messageText,
-                style: TextStyle(color: Colors.white, height: 1.5),
+                style: TextStyle(height: 1.5),
               ),
               SizedBox(height: 5),
 
               // @ Message Created At
               Text(
                 "${messageModel.createdAt.toDate().hour}:${messageModel.createdAt.toDate().minute}",
-                style: TextStyle(color: Colors.white.withOpacity(.5)),
+                style: TextStyle(
+                  color: isMine
+                      ? Colors.black.withOpacity(.5)
+                      : Colors.white.withOpacity(.5),
+                ),
               ),
             ],
           ),
