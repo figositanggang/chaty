@@ -19,8 +19,8 @@ class UserHelper {
     return users;
   }
 
-  // ! Get Other User Data
-  static Stream<DocumentSnapshot<Map<String, dynamic>>> getUserData(
+  // ! Stream User Data
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> streamUserData(
       String userId) {
     return _firestore.collection("users").doc(userId).snapshots();
   }

@@ -8,8 +8,10 @@ import 'package:chaty/features/user/helpers/user_helper.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/user/pages/user_page.dart';
 import 'package:chaty/utils/custom_methods.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 // Stateless Widgets
 // @ Button
@@ -154,20 +156,76 @@ class ChatCard extends StatelessWidget {
         .first;
 
     return StreamBuilder(
-      stream: UserHelper.getUserData(otherUserId),
+      stream: UserHelper.streamUserData(otherUserId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return ListTile(
-            title: Text(""),
-            minVerticalPadding: 25,
-          );
+          return Text("...");
         }
 
-        final otherUserModel = UserModel.fromSnapshot(snapshot.data!);
-        return OtherUserCard(
-          otherUserModel: otherUserModel,
-          currentUserModel: currentUserModel,
-          chatModel: chatModel,
+        if (!snapshot.hasData) {
+          return Text("User ini telah dihapus");
+        }
+
+        final _otherUserModel = UserModel.fromSnapshot(snapshot.data!);
+        Timestamp lastMessageCreatedAt = chatModel.lastMessage['createdAt'];
+        return Material(
+          elevation: 15,
+          shadowColor: Colors.black.withOpacity(.5),
+          child: ListTile(
+            onTap: () {
+              Navigator.push(
+                context,
+                MyRoute(ChattingPage(
+                  currentUserModel: currentUserModel,
+                  otherUserModel: _otherUserModel,
+                  chatId: chatModel.chatId,
+                )),
+              );
+            },
+            leading: InkWell(
+              onTap: () {},
+              customBorder: CircleBorder(),
+              child: Ink(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(_otherUserModel.photoUrl),
+                    fit: BoxFit.cover,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            title: Text(_otherUserModel.fullName),
+            subtitle: chatModel.lastMessage.isEmpty
+                ? Text(_otherUserModel.username)
+                : StreamBuilder(
+                    stream: ChatHelper.streamChat(chatModel.chatId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("...");
+                      }
+
+                      final _chatModel = ChatModel.fromSnapshot(snapshot.data!);
+                      return Text(
+                        _chatModel.lastMessage['messageText'],
+                        maxLines: 1,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(.5),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    },
+                  ),
+            trailing: Text(
+              differenceDate(DateTime.now(), lastMessageCreatedAt.toDate()),
+            ),
+            tileColor: Theme.of(context).primaryColor.withOpacity(.1),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            minVerticalPadding: 25,
+          ),
         );
       },
     );
@@ -180,16 +238,20 @@ class OtherUserCard extends StatelessWidget {
   final UserModel otherUserModel;
   final ChatModel chatModel;
 
-  const OtherUserCard({
+  OtherUserCard({
     super.key,
     required this.otherUserModel,
     required this.currentUserModel,
     required this.chatModel,
   });
 
+  MessageModel? lastMessage;
+
   @override
   Widget build(BuildContext context) {
-    final lastMessage = MessageModel.fromMap(chatModel.lastMessage);
+    if (chatModel.lastMessage.isNotEmpty) {
+      lastMessage = MessageModel.fromMap(chatModel.lastMessage);
+    }
 
     return Material(
       elevation: 15,
@@ -202,7 +264,7 @@ class OtherUserCard extends StatelessWidget {
           await Navigator.push(
             context,
             MyRoute(ChattingPage(
-              chatModel: chatModel,
+              chatId: chatModel.chatId,
               currentUserModel: currentUserModel,
               otherUserModel: otherUserModel,
             )),
@@ -236,16 +298,20 @@ class OtherUserCard extends StatelessWidget {
           otherUserModel.fullName,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: MyText(
-          "Terakhir: ${lastMessage.messageText}",
-          maxLines: 1,
-          color: Colors.white.withOpacity(.5),
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Text(differenceDate(
-          DateTime.now(),
-          lastMessage.createdAt.toDate(),
-        )),
+        subtitle: lastMessage != null
+            ? MyText(
+                "Terakhir: ${lastMessage!.messageText}",
+                maxLines: 1,
+                color: Colors.white.withOpacity(.5),
+                overflow: TextOverflow.ellipsis,
+              )
+            : Text(otherUserModel.username),
+        trailing: lastMessage != null
+            ? Text(differenceDate(
+                DateTime.now(),
+                lastMessage!.createdAt.toDate(),
+              ))
+            : null,
       ),
     );
   }
@@ -268,97 +334,117 @@ class MessageBubble extends StatelessWidget {
     required this.isMine,
   });
 
+  final format = DateFormat("d/M/y");
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onLongPress: () {
-        showDialog(
-          context: context,
-          builder: (context) => SimpleDialog(
-            contentPadding: EdgeInsets.zero,
-            children: [
-              // @ Copy Message Button
-              MyButton(
-                onPressed: () async {
-                  await Clipboard.setData(
-                      ClipboardData(text: messageModel.messageText));
-                  showSnackBar(context, "Pesan disalin");
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment:
+          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (context) => SimpleDialog(
+                contentPadding: EdgeInsets.zero,
+                children: [
+                  // @ Copy Message Button
+                  MyButton(
+                    onPressed: () async {
+                      await Clipboard.setData(
+                          ClipboardData(text: messageModel.messageText));
+                      showSnackBar(context, "Pesan disalin");
 
-                  Navigator.pop(context);
-                },
-                isPrimary: false,
-                borderRadius: BorderRadius.zero,
-                child: Text("Salin pesan"),
+                      Navigator.pop(context);
+                    },
+                    isPrimary: false,
+                    borderRadius: BorderRadius.zero,
+                    child: Text("Salin pesan"),
+                  ),
+                  Divider(height: 0),
+
+                  // @ Delete Message Button
+                  MyButton(
+                    onPressed: () async {
+                      await ChatHelper.deleteMessage(
+                        userId: messageModel.senderId,
+                        otherUserId: otherUserId,
+                        chatId: chatId,
+                        messageId: messageModel.messageId,
+                      );
+
+                      Navigator.pop(context);
+                    },
+                    isPrimary: false,
+                    borderRadius: BorderRadius.zero,
+                    child: Text("Hapus pesan"),
+                    foregroundColor: Colors.red,
+                  ),
+                  Divider(height: 0),
+                ],
               ),
-              Divider(height: 0),
-
-              // @ Delete Message Button
-              MyButton(
-                onPressed: () async {
-                  await ChatHelper.deleteMessage(
-                    userId: messageModel.senderId,
-                    otherUserId: otherUserId,
-                    chatId: chatId,
-                    messageId: messageModel.messageId,
-                  );
-
-                  Navigator.pop(context);
-                },
-                isPrimary: false,
-                borderRadius: BorderRadius.zero,
-                child: Text("Hapus pesan"),
-                foregroundColor: Colors.red,
+            );
+          },
+          child: DefaultTextStyle(
+            style: TextStyle(
+                fontSize: 18, color: isMine ? Colors.black : Colors.white),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              margin: EdgeInsets.symmetric(vertical: 5),
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width - 50),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: isMine
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(.5),
+                          offset: Offset(-2, 2),
+                          blurRadius: 15,
+                        ),
+                      ]
+                    : [],
+                color: isMine ? Colors.white : Colors.white.withOpacity(.1),
               ),
-              Divider(height: 0),
-            ],
-          ),
-        );
-      },
-      child: DefaultTextStyle(
-        style: TextStyle(
-            fontSize: 18, color: isMine ? Colors.black : Colors.white),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          margin: EdgeInsets.symmetric(vertical: 5),
-          constraints:
-              BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width - 50),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: isMine
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(.5),
-                      offset: Offset(-2, 2),
-                      blurRadius: 15,
+              child: Column(
+                crossAxisAlignment:
+                    isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  // @ Message Text
+                  Text(
+                    messageModel.messageText,
+                    style: TextStyle(height: 1.5),
+                  ),
+                  SizedBox(height: 5),
+
+                  // @ Message Created At
+                  Text(
+                    "${messageModel.createdAt.toDate().hour}:${messageModel.createdAt.toDate().minute}",
+                    style: TextStyle(
+                      color: isMine
+                          ? Colors.black.withOpacity(.5)
+                          : Colors.white.withOpacity(.5),
                     ),
-                  ]
-                : [],
-            color: isMine ? Colors.white : Colors.white.withOpacity(.1),
-          ),
-          child: Column(
-            crossAxisAlignment:
-                isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-            children: [
-              // @ Message Text
-              Text(
-                messageModel.messageText,
-                style: TextStyle(height: 1.5),
+                  ),
+                ],
               ),
-              SizedBox(height: 5),
-
-              // @ Message Created At
-              Text(
-                "${messageModel.createdAt.toDate().hour}:${messageModel.createdAt.toDate().minute}",
-                style: TextStyle(
-                  color: isMine
-                      ? Colors.black.withOpacity(.5)
-                      : Colors.white.withOpacity(.5),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+
+        // @ Message Date
+        Container(
+          margin: isMine
+              ? EdgeInsets.only(right: 7, bottom: 5)
+              : EdgeInsets.only(left: 7, bottom: 5),
+          child: Text(
+            format.format(messageModel.createdAt.toDate()),
+            style: TextStyle(color: Colors.white.withOpacity(.5)),
+          ),
+        ),
+      ],
     );
   }
 }

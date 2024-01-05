@@ -79,6 +79,7 @@ class _TambahChatPageState extends State<TambahChatPage> {
                   Navigator.pushReplacement(
                     context,
                     MyRoute(ChattingPage(
+                      chatId: "",
                       currentUserModel: widget.currentUser,
                       otherUserModel: otherUserModel,
                     )),

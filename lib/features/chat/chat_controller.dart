@@ -19,7 +19,7 @@ class ChatController extends GetxController {
   Rx<ChatModel>? chatModel = ChatModel(
     chatId: "",
     users: [],
-    lastPosition: 0,
+    lastPosition: [],
     lastMessage: {},
     createdAt: Timestamp.now(),
   ).obs;

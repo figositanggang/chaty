@@ -153,6 +153,6 @@ class _UserPageState extends State<UserPage> {
   }
 }
 
-InteractiveViewer UserAvatar(String src) {
-  return InteractiveViewer(child: Image.network(src));
+Widget UserAvatar(String src) {
+  return Material(child: InteractiveViewer(child: Image.network(src)));
 }

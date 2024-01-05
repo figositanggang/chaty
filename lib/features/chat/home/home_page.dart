@@ -9,6 +9,7 @@ import 'package:chaty/utils/custom_widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:chaty/main.dart';
+import 'package:get/get.dart';
 import 'package:get/get_core/get_core.dart';
 import 'package:get/get_instance/get_instance.dart';
 
@@ -73,8 +74,8 @@ class _HomePageState extends State<HomePage> {
               SizedBox(width: 10),
             ],
           ),
-          body: StreamBuilder(
-            stream: ChatHelper.streamMyChats(currentUser.id),
+          body: FutureBuilder(
+            future: ChatHelper.getMyChats(currentUser.id),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -104,12 +105,17 @@ class _HomePageState extends State<HomePage> {
                   itemCount: docs.length,
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   itemBuilder: (context, index) {
-                    ChatModel chatModel = ChatModel.fromSnapshot(docs[index]);
+                    try {
+                      ChatModel? chatModel =
+                          ChatModel.fromSnapshot(docs[index]);
 
-                    return ChatCard(
-                      chatModel: chatModel,
-                      currentUserModel: userController.currentUser,
-                    );
+                      return ChatCard(
+                        chatModel: chatModel,
+                        currentUserModel: userController.currentUser,
+                      );
+                    } catch (e) {
+                      return Text("AW");
+                    }
                   },
                 ),
               );

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ChatModel {
   final String chatId;
   final Map<String, dynamic> lastMessage;
-  final num lastPosition;
+  final List lastPosition;
   final List users;
   final Timestamp createdAt;
 

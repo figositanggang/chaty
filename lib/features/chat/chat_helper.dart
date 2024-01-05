@@ -1,4 +1,5 @@
 import 'package:chaty/features/chat/models/chat_model.dart';
+import 'package:chaty/features/chat/models/last_position_model.dart';
 import 'package:chaty/features/chat/models/message_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -7,17 +8,23 @@ class ChatHelper {
 
   // ! Get My Chats
   // Retrieve history chat
-  static Stream<QuerySnapshot<Map<String, dynamic>>> streamMyChats(
+  static Future<QuerySnapshot<Map<String, dynamic>>> getMyChats(
       String currentUserId) {
     return firestore
         .collection("chats")
         .where("users", arrayContains: currentUserId)
-        .snapshots();
+        .get();
   }
 
   // ! Get Current Chat
   static Future<DocumentSnapshot<Map<String, dynamic>>> getChat(String chatId) {
     return firestore.collection("chats").doc(chatId).get();
+  }
+
+  // ! Stream Current Chat
+  static Stream<DocumentSnapshot<Map<String, dynamic>>> streamChat(
+      String chatId) {
+    return firestore.collection("chats").doc(chatId).snapshots();
   }
 
   // ! Get Messages
@@ -38,7 +45,6 @@ class ChatHelper {
   static Future<ChatModel?> createNewChat({
     required String currentUserId,
     required String otherUserId,
-    required MessageModel messageModel,
   }) async {
     ChatModel? chatModel;
     try {
@@ -47,8 +53,17 @@ class ChatHelper {
             ChatModel(
               chatId: "",
               users: [currentUserId, otherUserId],
-              lastPosition: 0.0,
-              lastMessage: messageModel.toMap(),
+              lastPosition: [
+                LastPositionModel(
+                  userId: currentUserId,
+                  lastPosition: 0.0,
+                ).toMap(),
+                LastPositionModel(
+                  userId: otherUserId,
+                  lastPosition: 0.0,
+                ).toMap(),
+              ],
+              lastMessage: {},
               createdAt: Timestamp.now(),
             ).toJson(),
           );
@@ -63,31 +78,11 @@ class ChatHelper {
         "chats": [chatReference.id]
       });
 
-      // ! Send New Message
-      DocumentReference messageRef = await firestore
-          .collection("chats")
-          .doc(chatReference.id)
-          .collection("messages")
-          .add(
-            MessageModel(
-              messageId: "",
-              senderId: currentUserId,
-              messageText: messageModel.messageText,
-              createdAt: Timestamp.now(),
-              position: messageModel.position,
-            ).toMap(),
-          );
-
-      await firestore
-          .collection("chats")
-          .doc(chatReference.id)
-          .collection("messages")
-          .doc(messageRef.id)
-          .update({"messageId": messageRef.id});
-
       chatModel = ChatModel.fromSnapshot(
           await firestore.collection("chats").doc(chatReference.id).get());
-    } catch (e) {}
+    } catch (e) {
+      print("GAGAL CREATE CHATTTTTTTTTTTTTTTTT: $e");
+    }
 
     return chatModel;
   }
@@ -160,13 +155,10 @@ class ChatHelper {
           .get();
 
       if (querySnapshot.docs.isEmpty) {
-        await firestore.collection("chats").doc(chatId).delete();
-
-        await firestore.collection("users").doc(userId).update({"chats": []});
         await firestore
-            .collection("users")
-            .doc(otherUserId)
-            .update({"chats": []});
+            .collection("chats")
+            .doc(chatId)
+            .update({"lastMessage": {}});
       }
     } catch (e) {
       print("GAGAL: $e");
