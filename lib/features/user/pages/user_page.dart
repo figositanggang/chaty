@@ -1,4 +1,5 @@
 import 'package:chaty/features/user/models/user_model.dart';
+import 'package:chaty/features/user/pages/change_avatar_page.dart';
 import 'package:chaty/utils/custom_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -90,11 +91,15 @@ class _UserPageState extends State<UserPage> {
                   ),
                 ),
                 widget.isMine
+                    // @ Change Avatar Button
                     ? Positioned(
                         bottom: 0,
                         right: 0,
                         child: IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                                context, MyRoute(ChangeAvatarPage()));
+                          },
                           icon: Icon(Icons.edit),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white.withOpacity(.9),
@@ -154,5 +159,16 @@ class _UserPageState extends State<UserPage> {
 }
 
 Widget UserAvatar(String src) {
-  return Material(child: InteractiveViewer(child: Image.network(src)));
+  return Material(
+    child: InteractiveViewer(
+      child: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: NetworkImage(src),
+          ),
+          shape: BoxShape.circle,
+        ),
+      ),
+    ),
+  );
 }

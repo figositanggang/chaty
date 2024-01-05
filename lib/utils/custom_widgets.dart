@@ -22,6 +22,7 @@ class MyButton extends StatelessWidget {
   Color? backgroundColor;
   BorderRadiusGeometry? borderRadius;
   Color? foregroundColor;
+  double? elevation;
 
   MyButton({
     super.key,
@@ -31,6 +32,7 @@ class MyButton extends StatelessWidget {
     this.backgroundColor,
     this.borderRadius,
     this.foregroundColor = Colors.white,
+    this.elevation,
   });
 
   @override
@@ -39,10 +41,12 @@ class MyButton extends StatelessWidget {
       onPressed: onPressed,
       child: child,
       style: ElevatedButton.styleFrom(
+        elevation: elevation,
         padding: EdgeInsets.symmetric(horizontal: 25, vertical: 20),
         backgroundColor: isPrimary
             ? backgroundColor ?? Theme.of(context).colorScheme.primary
-            : Theme.of(context).buttonTheme.colorScheme!.background,
+            : backgroundColor ??
+                Theme.of(context).buttonTheme.colorScheme!.background,
         foregroundColor: foregroundColor,
         shape: RoundedRectangleBorder(
           borderRadius: borderRadius ?? BorderRadius.circular(30),
@@ -183,12 +187,21 @@ class ChatCard extends StatelessWidget {
               );
             },
             leading: InkWell(
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MyRoute(UserPage(
+                    userModel: _otherUserModel,
+                    isMine: false,
+                  )),
+                );
+              },
               customBorder: CircleBorder(),
               child: Ink(
-                height: 50,
-                width: 50,
+                height: 60,
+                width: 60,
                 decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
                   image: DecorationImage(
                     image: NetworkImage(_otherUserModel.photoUrl),
                     fit: BoxFit.cover,
@@ -228,91 +241,6 @@ class ChatCard extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-// @ Other User Card
-class OtherUserCard extends StatelessWidget {
-  final UserModel currentUserModel;
-  final UserModel otherUserModel;
-  final ChatModel chatModel;
-
-  OtherUserCard({
-    super.key,
-    required this.otherUserModel,
-    required this.currentUserModel,
-    required this.chatModel,
-  });
-
-  MessageModel? lastMessage;
-
-  @override
-  Widget build(BuildContext context) {
-    if (chatModel.lastMessage.isNotEmpty) {
-      lastMessage = MessageModel.fromMap(chatModel.lastMessage);
-    }
-
-    return Material(
-      elevation: 15,
-      shadowColor: Colors.black.withOpacity(.5),
-      child: ListTile(
-        tileColor: Theme.of(context).primaryColor.withOpacity(.1),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        minVerticalPadding: 25,
-        onTap: () async {
-          await Navigator.push(
-            context,
-            MyRoute(ChattingPage(
-              chatId: chatModel.chatId,
-              currentUserModel: currentUserModel,
-              otherUserModel: otherUserModel,
-            )),
-          );
-        },
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MyRoute(UserPage(
-                isMine: false,
-                userModel: otherUserModel,
-              )),
-            );
-          },
-          child: Container(
-            height: 55,
-            width: 55,
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: NetworkImage(otherUserModel.photoUrl),
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.low,
-              ),
-            ),
-          ),
-        ),
-        title: Text(
-          otherUserModel.fullName,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: lastMessage != null
-            ? MyText(
-                "Terakhir: ${lastMessage!.messageText}",
-                maxLines: 1,
-                color: Colors.white.withOpacity(.5),
-                overflow: TextOverflow.ellipsis,
-              )
-            : Text(otherUserModel.username),
-        trailing: lastMessage != null
-            ? Text(differenceDate(
-                DateTime.now(),
-                lastMessage!.createdAt.toDate(),
-              ))
-            : null,
-      ),
     );
   }
 }
@@ -490,12 +418,14 @@ Text MyText(
 SnackBar MySnackBar(
   String content, {
   Duration duration = const Duration(seconds: 1),
+  Color? backgroundColor,
 }) {
   return SnackBar(
     content: Text(content),
     behavior: SnackBarBehavior.floating,
     margin: EdgeInsets.symmetric(horizontal: 30, vertical: 10),
     duration: duration,
+    backgroundColor: backgroundColor,
   );
 }
 

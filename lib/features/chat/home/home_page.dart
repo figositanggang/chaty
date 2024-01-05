@@ -1,7 +1,7 @@
 import 'package:chaty/features/auth/helpers/auth_helper.dart';
 import 'package:chaty/features/chat/chat_helper.dart';
 import 'package:chaty/features/chat/models/chat_model.dart';
-import 'package:chaty/features/user/user_controller.dart';
+import 'package:chaty/features/user/controllers/user_controller.dart';
 import 'package:chaty/features/user/models/user_model.dart';
 import 'package:chaty/features/chat/home/home-drawer.dart';
 import 'package:chaty/features/chat/pages/new_chat_page.dart';
@@ -10,8 +10,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:chaty/main.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/get_core.dart';
-import 'package:get/get_instance/get_instance.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -50,6 +48,8 @@ class _HomePageState extends State<HomePage> {
       userController.setUserModel(UserModel.fromSnapshot(value));
       return value;
     });
+
+    setState(() {});
   }
 
   @override
@@ -64,8 +64,10 @@ class _HomePageState extends State<HomePage> {
         return Scaffold(
           key: scaffoldKey,
           appBar: AppBar(
-            title: Text(
-                "Halo ${userController.currentUser.fullName.split(" ")[0]}"),
+            title: Obx(
+              () => Text(
+                  "Halo ${userController.currentUser.fullName.split(" ")[0]}"),
+            ),
             actions: [
               IconButton(
                 onPressed: () {},
@@ -99,7 +101,7 @@ class _HomePageState extends State<HomePage> {
               final docs = snapshot.data!.docs;
               return RefreshIndicator(
                 onRefresh: () async {
-                  setState(() {});
+                  refresh();
                 },
                 child: ListView.builder(
                   itemCount: docs.length,
@@ -121,10 +123,7 @@ class _HomePageState extends State<HomePage> {
               );
             },
           ),
-          drawer: HomeDrawer(
-            userModel: userController.currentUser,
-            scaffoldKey: scaffoldKey,
-          ),
+          drawer: HomeDrawer(scaffoldKey: scaffoldKey),
           drawerEdgeDragWidth: MediaQuery.sizeOf(context).width - 100,
           floatingActionButton: FloatingActionButton(
             tooltip: "Tambah chat",

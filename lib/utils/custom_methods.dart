@@ -8,8 +8,16 @@ void showLoading(BuildContext context) {
   );
 }
 
-void showSnackBar(BuildContext context, String content) {
-  ScaffoldMessenger.of(context).showSnackBar(MySnackBar(content));
+void showSnackBar(BuildContext context, String content,
+    {bool isDanger = false}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    MySnackBar(
+      content,
+      backgroundColor: isDanger
+          ? Colors.red
+          : Theme.of(context).snackBarTheme.backgroundColor,
+    ),
+  );
 }
 
 // ! Generate Different date from now to a date
